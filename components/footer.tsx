@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Colors, NavItem } from "@/lib/types";
 import type { Theme } from "@/lib/themes";
+import type { VariantStyle } from "@/lib/style-variants";
 import { adjustColor, mixColor } from "@/lib/colors";
 import { sanitizeUrl } from "@/lib/sanitize";
 import { t } from "@/lib/i18n";
@@ -24,6 +25,7 @@ export function Footer({
   colors,
   theme,
   lang,
+  variantStyle,
 }: {
   businessName?: string;
   email?: string | null;
@@ -34,6 +36,7 @@ export function Footer({
   colors: Colors;
   theme: Theme;
   lang?: string;
+  variantStyle: VariantStyle;
 }) {
   if (!businessName) return null;
 
@@ -41,6 +44,9 @@ export function Footer({
   const textMuted = mixColor(colors.background, colors.text, 0.45);
   const textDim = mixColor(colors.background, colors.text, 0.65);
   const socials = Object.entries(socialLinks || {});
+
+  const socialIconRadius = variantStyle.iconRadius;
+  const isLeft = variantStyle.headerAlign === "left";
 
   return (
     <footer className="relative overflow-hidden px-5 py-20 sm:px-8" style={{ background: footerBg }}>
@@ -52,7 +58,21 @@ export function Footer({
         }}
       />
 
-      <div className="mx-auto max-w-6xl">
+      {/* Decorative blobs for variants that use decorations */}
+      {variantStyle.showDecorations && (
+        <>
+          <div
+            className="absolute -left-32 -top-32 h-64 w-64 rounded-full opacity-[0.04] blur-[80px]"
+            style={{ background: colors.primary }}
+          />
+          <div
+            className="absolute -bottom-24 -right-24 h-48 w-48 rounded-full opacity-[0.03] blur-[60px]"
+            style={{ background: colors.accent }}
+          />
+        </>
+      )}
+
+      <div className="relative mx-auto max-w-6xl">
         <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
           <div className="lg:col-span-1">
@@ -119,7 +139,7 @@ export function Footer({
                       href={sanitizeUrl(url) || "#"}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex h-10 w-10 items-center justify-center rounded-xl text-sm transition-all duration-200 hover:scale-105 hover:brightness-125"
+                      className={`flex h-10 w-10 items-center justify-center ${socialIconRadius} text-sm transition-all duration-200 hover:scale-105 hover:brightness-125`}
                       style={{
                         background: mixColor(colors.background, footerBg, 0.88),
                         color: colors.background,

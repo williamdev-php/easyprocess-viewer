@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { resolveColors } from "@/lib/colors";
 import { getTheme } from "@/lib/themes";
+import { getVariantStyle } from "@/lib/style-variants";
 import type { SiteData } from "@/lib/types";
 
 import { Hero } from "@/components/hero";
@@ -72,6 +73,7 @@ export function PreviewShell({ initialData, siteId }: Props) {
   // ------------------------------------------------------------------
   const colors = resolveColors(data);
   const theme = getTheme(data.theme);
+  const variantStyle = getVariantStyle(data.style_variant);
   const lang = data.meta?.language || "sv";
   const sectionOrder = data.section_order ?? DEFAULT_ORDER;
 
@@ -110,47 +112,48 @@ export function PreviewShell({ initialData, siteId }: Props) {
             colors={colors}
             theme={theme}
             lang={lang}
+            variantStyle={variantStyle}
           />
         );
       case "about":
         return wrap(
-          <AboutSection {...data.about!} colors={colors} theme={theme} variant="snippet" siteId={siteId} lang={lang} />
+          <AboutSection {...data.about!} colors={colors} theme={theme} variant="snippet" siteId={siteId} lang={lang} variantStyle={variantStyle} />
         );
       case "features":
         return wrap(
-          <FeaturesSection {...data.features!} colors={colors} theme={theme} lang={lang} />
+          <FeaturesSection {...data.features!} colors={colors} theme={theme} lang={lang} variantStyle={variantStyle} />
         );
       case "stats":
         return wrap(
-          <StatsSection {...data.stats!} colors={colors} theme={theme} />
+          <StatsSection {...data.stats!} colors={colors} theme={theme} variantStyle={variantStyle} />
         );
       case "services":
         return wrap(
-          <ServicesSection {...data.services!} colors={colors} theme={theme} variant="snippet" siteId={siteId} lang={lang} />
+          <ServicesSection {...data.services!} colors={colors} theme={theme} variant="snippet" siteId={siteId} lang={lang} variantStyle={variantStyle} />
         );
       case "process":
         return wrap(
-          <ProcessSection {...data.process!} colors={colors} theme={theme} lang={lang} />
+          <ProcessSection {...data.process!} colors={colors} theme={theme} lang={lang} variantStyle={variantStyle} />
         );
       case "gallery":
         return wrap(
-          <GallerySection {...data.gallery!} colors={colors} theme={theme} lang={lang} />
+          <GallerySection {...data.gallery!} colors={colors} theme={theme} lang={lang} variantStyle={variantStyle} />
         );
       case "testimonials":
         return wrap(
-          <TestimonialsSection {...data.testimonials!} colors={colors} theme={theme} lang={lang} />
+          <TestimonialsSection {...data.testimonials!} colors={colors} theme={theme} lang={lang} variantStyle={variantStyle} />
         );
       case "team":
         return wrap(
-          <TeamSection {...data.team!} colors={colors} theme={theme} lang={lang} />
+          <TeamSection {...data.team!} colors={colors} theme={theme} lang={lang} variantStyle={variantStyle} />
         );
       case "faq":
         return wrap(
-          <FAQSection {...data.faq!} colors={colors} theme={theme} />
+          <FAQSection {...data.faq!} colors={colors} theme={theme} variantStyle={variantStyle} />
         );
       case "cta":
         return wrap(
-          <CTASection {...data.cta!} colors={colors} theme={theme} />
+          <CTASection {...data.cta!} colors={colors} theme={theme} variantStyle={variantStyle} />
         );
       case "contact":
         return wrap(
@@ -163,6 +166,7 @@ export function PreviewShell({ initialData, siteId }: Props) {
             theme={theme}
             lang={lang}
             siteId={siteId}
+            variantStyle={variantStyle}
           />
         );
       default:

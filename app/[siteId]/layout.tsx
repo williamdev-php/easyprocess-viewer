@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { fetchSiteResponse, fetchSiteMeta } from "@/lib/api";
 import { resolveColors } from "@/lib/colors";
 import { getTheme } from "@/lib/themes";
+import { getVariantStyle } from "@/lib/style-variants";
 import { buildNavigation } from "@/lib/navigation";
 import { Nav } from "@/components/nav";
 import { Footer } from "@/components/footer";
@@ -45,6 +46,7 @@ export default async function SiteLayout({ params, children }: Props) {
   const isDraft = siteResponse.status === "DRAFT";
   const colors = resolveColors(siteData ?? {});
   const theme = getTheme(siteData?.theme);
+  const variantStyle = getVariantStyle(siteData?.style_variant);
   const navItems = buildNavigation(siteData, siteId);
   const biz = siteData.business;
 
@@ -73,6 +75,7 @@ export default async function SiteLayout({ params, children }: Props) {
         businessName={biz?.name}
         ctaHref={ctaHref}
         lang={lang}
+        variantStyle={variantStyle}
       />
       <Analytics siteId={siteId} />
       <main>{children}</main>
@@ -93,6 +96,7 @@ export default async function SiteLayout({ params, children }: Props) {
         colors={colors}
         theme={theme}
         lang={lang}
+        variantStyle={variantStyle}
       />
     </div>
   );

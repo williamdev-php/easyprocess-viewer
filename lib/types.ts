@@ -72,6 +72,7 @@ export interface SiteData {
   };
   section_order?: string[];
   theme?: string;
+  style_variant?: number;
   branding?: {
     logo_url?: string | null;
     colors?: Partial<Colors>;

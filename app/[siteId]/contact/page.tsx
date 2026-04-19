@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { fetchSiteData } from "@/lib/api";
 import { resolveColors } from "@/lib/colors";
 import { getTheme } from "@/lib/themes";
+import { getVariantStyle } from "@/lib/style-variants";
 import { t } from "@/lib/i18n";
 import { PageHeader } from "@/components/page-header";
 import { ContactSection } from "@/components/contact-section";
@@ -31,6 +32,7 @@ export default async function ContactPage({ params }: Props) {
 
   const colors = resolveColors(data);
   const theme = getTheme(data.theme);
+  const variantStyle = getVariantStyle(data.style_variant);
   const lang = data.meta?.language;
 
   return (
@@ -39,6 +41,7 @@ export default async function ContactPage({ params }: Props) {
         title={data.contact?.title || t("contact.contactUs", lang)}
         colors={colors}
         theme={theme}
+        variantStyle={variantStyle}
       />
       <EditablePageWrapper section="contact">
         <ContactSection
@@ -51,6 +54,7 @@ export default async function ContactPage({ params }: Props) {
           theme={theme}
           lang={lang}
           siteId={siteId}
+          variantStyle={variantStyle}
         />
       </EditablePageWrapper>
     </>

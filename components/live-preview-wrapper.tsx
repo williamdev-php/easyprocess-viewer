@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { resolveColors } from "@/lib/colors";
 import { getTheme } from "@/lib/themes";
+import { getVariantStyle } from "@/lib/style-variants";
 import type { SiteData } from "@/lib/types";
 import dynamic from "next/dynamic";
 import { Hero } from "@/components/hero";
@@ -92,6 +93,7 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
 
   const colors = resolveColors(data);
   const theme = getTheme(data.theme);
+  const variantStyle = getVariantStyle(data.style_variant);
 
   const lang = data.meta?.language || "sv";
 
@@ -116,6 +118,7 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
                 colors={colors}
                 theme={theme}
                 lang={lang}
+                variantStyle={variantStyle}
               />
             </EditableSection>
           </ErrorBoundary>
@@ -131,6 +134,7 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
                 variant="snippet"
                 siteId={siteId}
                 lang={lang}
+                variantStyle={variantStyle}
               />
             </EditableSection>
           </ErrorBoundary>
@@ -144,6 +148,7 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
                 colors={colors}
                 theme={theme}
                 lang={lang}
+                variantStyle={variantStyle}
               />
             </EditableSection>
           </ErrorBoundary>
@@ -156,6 +161,7 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
                 {...data.stats}
                 colors={colors}
                 theme={theme}
+                variantStyle={variantStyle}
               />
             </EditableSection>
           </ErrorBoundary>
@@ -171,6 +177,7 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
                 variant="snippet"
                 siteId={siteId}
                 lang={lang}
+                variantStyle={variantStyle}
               />
             </EditableSection>
           </ErrorBoundary>
@@ -184,6 +191,7 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
                 colors={colors}
                 theme={theme}
                 lang={lang}
+                variantStyle={variantStyle}
               />
             </EditableSection>
           </ErrorBoundary>
@@ -197,6 +205,7 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
                 colors={colors}
                 theme={theme}
                 lang={lang}
+                variantStyle={variantStyle}
               />
             </EditableSection>
           </ErrorBoundary>
@@ -210,6 +219,7 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
                 colors={colors}
                 theme={theme}
                 lang={lang}
+                variantStyle={variantStyle}
               />
             </EditableSection>
           </ErrorBoundary>
@@ -223,6 +233,7 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
                 colors={colors}
                 theme={theme}
                 lang={lang}
+                variantStyle={variantStyle}
               />
             </EditableSection>
           </ErrorBoundary>
@@ -235,6 +246,7 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
                 {...data.faq}
                 colors={colors}
                 theme={theme}
+                variantStyle={variantStyle}
               />
             </EditableSection>
           </ErrorBoundary>
@@ -247,6 +259,7 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
                 {...data.cta}
                 colors={colors}
                 theme={theme}
+                variantStyle={variantStyle}
               />
             </EditableSection>
           </ErrorBoundary>
@@ -264,6 +277,7 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
                 theme={theme}
                 lang={lang}
                 siteId={siteId}
+                variantStyle={variantStyle}
               />
             </EditableSection>
           </ErrorBoundary>

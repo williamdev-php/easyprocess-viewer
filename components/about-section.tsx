@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import type { Colors, Highlight } from "@/lib/types";
 import type { Theme } from "@/lib/themes";
+import type { VariantStyle } from "@/lib/style-variants";
 import { mixColor } from "@/lib/colors";
 import { sanitizeImageUrl } from "@/lib/sanitize";
 import { t } from "@/lib/i18n";
@@ -22,6 +22,7 @@ export function AboutSection({
   siteId,
   lang,
   show_highlights = true,
+  variantStyle,
 }: {
   title?: string;
   text?: string;
@@ -33,6 +34,7 @@ export function AboutSection({
   siteId?: string;
   lang?: string;
   show_highlights?: boolean;
+  variantStyle: VariantStyle;
 }) {
   if (!title && !text) return null;
 
@@ -42,21 +44,56 @@ export function AboutSection({
       ? text.slice(0, 280).replace(/\s\S*$/, "") + "..."
       : text;
 
+  const isLeft = variantStyle.headerAlign === "left";
+  const aboutLayout = variantStyle.aboutLayout;
+
+  // Determine flex direction based on variant
+  const flexDir =
+    aboutLayout === "image-left"
+      ? "lg:flex-row-reverse"
+      : aboutLayout === "image-top"
+      ? "flex-col"
+      : "lg:flex-row";
+
   return (
     <SectionWrap theme={theme} bg={colors.background} id="about">
       <div className="mx-auto max-w-6xl">
         {/* Section label */}
         <Reveal>
           <p
-            className="mb-3 text-center text-sm font-semibold uppercase tracking-widest"
+            className={`mb-3 text-sm font-semibold uppercase tracking-widest ${isLeft ? "text-left" : "text-center"}`}
             style={{ color: colors.primary }}
           >
             {t("section.about", lang)}
           </p>
         </Reveal>
 
-        <div className={`flex flex-col gap-14 lg:gap-20 ${img ? "lg:flex-row lg:items-center" : ""}`}>
-          <div className={img ? "lg:w-1/2" : "mx-auto max-w-2xl text-center"}>
+        <div className={`flex flex-col gap-14 lg:gap-20 ${img && aboutLayout !== "image-top" ? flexDir + " lg:items-center" : ""}`}>
+          {/* Image on top for image-top layout */}
+          {img && aboutLayout === "image-top" && (
+            <Reveal>
+              <div className="relative">
+                <div
+                  className={`overflow-hidden ${variantStyle.cardRadius}`}
+                  style={{
+                    boxShadow: `0 8px 40px ${mixColor(colors.primary, "#000000", 0.5)}20`,
+                  }}
+                >
+                  <FallbackImage
+                    src={img}
+                    alt={title || ""}
+                    width={1200}
+                    height={500}
+                    className="aspect-[21/9] w-full object-cover"
+                    colors={colors}
+                    sizes="100vw"
+                  />
+                </div>
+              </div>
+            </Reveal>
+          )}
+
+          <div className={img && aboutLayout !== "image-top" ? "lg:w-1/2" : `mx-auto max-w-2xl ${isLeft ? "" : "text-center"}`}>
             {title && (
               <Reveal>
                 <h2
@@ -85,9 +122,9 @@ export function AboutSection({
                   {highlights.map((h, i) => (
                     <div
                       key={i}
-                      className="rounded-xl border p-4 text-center"
+                      className={`${variantStyle.cardRadius} ${variantStyle.cardBorder ? "border" : ""} p-4 text-center ${variantStyle.cardShadow}`}
                       style={{
-                        borderColor: mixColor(colors.text, colors.background, 0.92),
+                        ...(variantStyle.cardBorder ? { borderColor: mixColor(colors.text, colors.background, 0.92) } : {}),
                         background: mixColor(colors.primary, colors.background, 0.97),
                       }}
                     >
@@ -132,11 +169,11 @@ export function AboutSection({
             )}
           </div>
 
-          {img && (
+          {img && aboutLayout !== "image-top" && (
             <Reveal className="lg:w-1/2">
               <div className="relative">
                 <div
-                  className="overflow-hidden rounded-2xl"
+                  className={`overflow-hidden ${variantStyle.cardRadius}`}
                   style={{
                     boxShadow: `0 8px 40px ${mixColor(colors.primary, "#000000", 0.5)}20`,
                   }}
@@ -152,12 +189,14 @@ export function AboutSection({
                   />
                 </div>
                 {/* Decorative accent */}
-                <div
-                  className="absolute -bottom-3 -right-3 -z-10 h-full w-full rounded-2xl"
-                  style={{
-                    background: `linear-gradient(135deg, ${mixColor(colors.primary, colors.background, 0.85)}, ${mixColor(colors.accent, colors.background, 0.85)})`,
-                  }}
-                />
+                {variantStyle.showDecorations && (
+                  <div
+                    className={`absolute -bottom-3 -right-3 -z-10 h-full w-full ${variantStyle.cardRadius}`}
+                    style={{
+                      background: `linear-gradient(135deg, ${mixColor(colors.primary, colors.background, 0.85)}, ${mixColor(colors.accent, colors.background, 0.85)})`,
+                    }}
+                  />
+                )}
               </div>
             </Reveal>
           )}

@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import type { ReactNode } from "react";
 import type { Colors } from "@/lib/types";
 import type { Theme } from "@/lib/themes";
+import type { VariantStyle } from "@/lib/style-variants";
 import { mixColor } from "@/lib/colors";
 import { t } from "@/lib/i18n";
 import { API_URL } from "@/lib/api";
@@ -17,10 +18,12 @@ function ContactForm({
   colors,
   lang,
   siteId,
+  variantStyle,
 }: {
   colors: Colors;
   lang?: string;
   siteId?: string;
+  variantStyle: VariantStyle;
 }) {
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
@@ -45,7 +48,6 @@ function ContactForm({
       return;
     }
 
-    // Client-side rate limiting
     const now = Date.now();
     if (now - lastSubmitRef.current < SUBMIT_COOLDOWN_MS) {
       return;
@@ -88,7 +90,7 @@ function ContactForm({
   if (status === "success") {
     return (
       <div
-        className="rounded-2xl border p-8 text-center"
+        className={`${variantStyle.cardRadius} border p-8 text-center`}
         style={{
           background: colors.background,
           borderColor: mixColor(colors.primary, colors.background, 0.7),
@@ -104,6 +106,8 @@ function ContactForm({
     );
   }
 
+  const inputRadius = variantStyle.cardRadius.replace("2xl", "xl").replace("3xl", "2xl");
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
@@ -115,7 +119,7 @@ function ContactForm({
           required
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="w-full rounded-xl border px-4 py-3 text-sm outline-none transition-colors focus:ring-2"
+          className={`w-full ${inputRadius} border px-4 py-3 text-sm outline-none transition-colors focus:ring-2`}
           style={{
             background: colors.background,
             borderColor: mixColor(colors.text, colors.background, 0.88),
@@ -132,7 +136,7 @@ function ContactForm({
           required
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          className="w-full rounded-xl border px-4 py-3 text-sm outline-none transition-colors focus:ring-2"
+          className={`w-full ${inputRadius} border px-4 py-3 text-sm outline-none transition-colors focus:ring-2`}
           style={{
             background: colors.background,
             borderColor: mixColor(colors.text, colors.background, 0.88),
@@ -149,7 +153,7 @@ function ContactForm({
           rows={5}
           value={formData.message}
           onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-          className="w-full resize-none rounded-xl border px-4 py-3 text-sm outline-none transition-colors focus:ring-2"
+          className={`w-full resize-none ${inputRadius} border px-4 py-3 text-sm outline-none transition-colors focus:ring-2`}
           style={{
             background: colors.background,
             borderColor: mixColor(colors.text, colors.background, 0.88),
@@ -166,7 +170,7 @@ function ContactForm({
       <button
         type="submit"
         disabled={status === "sending"}
-        className="w-full rounded-xl px-6 py-3.5 text-sm font-semibold text-white transition-all duration-200 hover:scale-[1.01] hover:brightness-110 disabled:opacity-60"
+        className={`w-full ${variantStyle.buttonRadius} px-6 py-3.5 text-sm font-semibold text-white transition-all duration-200 hover:scale-[1.01] hover:brightness-110 disabled:opacity-60`}
         style={{
           background: colors.primary,
           boxShadow: `0 2px 8px ${colors.primary}30`,
@@ -175,6 +179,69 @@ function ContactForm({
         {status === "sending" ? t("contact.form.sending", lang) : t("contact.form.send", lang)}
       </button>
     </form>
+  );
+}
+
+function ContactInfoItems({
+  contactItems,
+  colors,
+  variantStyle,
+}: {
+  contactItems: { icon: ReactNode; label: string; value: string; href?: string }[];
+  colors: Colors;
+  variantStyle: VariantStyle;
+}) {
+  const gridClass =
+    contactItems.length === 1
+      ? "mx-auto max-w-sm"
+      : contactItems.length === 2
+        ? "mx-auto max-w-2xl sm:grid-cols-2"
+        : "sm:grid-cols-3";
+
+  return (
+    <div className={`grid gap-5 ${gridClass}`}>
+      {contactItems.map((item, i) => {
+        const Tag = item.href ? "a" : "div";
+        return (
+          <Tag
+            key={i}
+            {...(item.href ? { href: item.href } : {})}
+            className={`group ${variantStyle.cardRadius} ${variantStyle.cardBorder ? "border" : ""} p-7 transition-all duration-300 ${variantStyle.hoverEffect} ${variantStyle.cardShadow}`}
+            style={{
+              background: colors.background,
+              ...(variantStyle.cardBorder ? { borderColor: mixColor(colors.text, colors.background, 0.93) } : {}),
+            }}
+          >
+            <div
+              className={`mx-auto mb-4 flex h-14 w-14 items-center justify-center ${variantStyle.iconRadius}`}
+              style={{
+                background: `linear-gradient(135deg, ${mixColor(colors.primary, colors.background, 0.88)}, ${mixColor(colors.accent, colors.background, 0.85)})`,
+              }}
+            >
+              <svg
+                className="h-6 w-6"
+                style={{ color: colors.primary }}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
+              >
+                {item.icon}
+              </svg>
+            </div>
+            <p
+              className="mb-1.5 text-xs font-semibold uppercase tracking-widest"
+              style={{ color: mixColor(colors.text, colors.background, 0.55) }}
+            >
+              {item.label}
+            </p>
+            <p className="text-sm font-semibold" style={{ color: colors.text }}>
+              {item.value}
+            </p>
+          </Tag>
+        );
+      })}
+    </div>
   );
 }
 
@@ -190,6 +257,7 @@ export function ContactSection({
   siteId,
   show_form = true,
   show_info = true,
+  variantStyle,
 }: {
   title?: string;
   text?: string;
@@ -202,6 +270,7 @@ export function ContactSection({
   siteId?: string;
   show_form?: boolean;
   show_info?: boolean;
+  variantStyle: VariantStyle;
 }) {
   const contactItems = [
     email && {
@@ -243,105 +312,123 @@ export function ContactSection({
 
   if (!contactItems.length && !title) return null;
 
+  const isLeft = variantStyle.headerAlign === "left";
+  const isTwoColumn = variantStyle.contactLayout === "two-column";
+
   return (
     <SectionWrap theme={theme} bg={colors.background} id="contact">
-      <div className="mx-auto max-w-4xl text-center">
-        {title && (
-          <Reveal>
-            <p
-              className="mb-3 text-sm font-semibold uppercase tracking-widest"
-              style={{ color: colors.primary }}
-            >
-              {t("section.contact", lang)}
-            </p>
-            <h2
-              className={`text-3xl ${theme.heading.weight} ${theme.heading.tracking} sm:text-4xl md:text-5xl`}
-              style={{ color: colors.text }}
-            >
-              {title}
-            </h2>
-          </Reveal>
-        )}
-        {text && (
-          <Reveal delay={80}>
-            <p
-              className="mx-auto mt-5 max-w-lg text-lg leading-relaxed"
-              style={{ color: mixColor(colors.text, colors.background, 0.4) }}
-            >
-              {text}
-            </p>
-          </Reveal>
-        )}
-        {show_info && contactItems.length > 0 && (
-          <Reveal delay={160}>
-            <div
-              className={`mt-14 grid gap-5 ${
-                contactItems.length === 1
-                  ? "mx-auto max-w-sm"
-                  : contactItems.length === 2
-                    ? "mx-auto max-w-2xl sm:grid-cols-2"
-                    : "sm:grid-cols-3"
-              }`}
-            >
-              {contactItems.map((item, i) => {
-                const Tag = item.href ? "a" : "div";
-                return (
-                  <Tag
-                    key={i}
-                    {...(item.href ? { href: item.href } : {})}
-                    className="group rounded-2xl border p-7 transition-all duration-300 hover:-translate-y-1"
-                    style={{
-                      background: colors.background,
-                      borderColor: mixColor(colors.text, colors.background, 0.93),
-                      boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
-                    }}
-                  >
-                    <div
-                      className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl"
-                      style={{
-                        background: `linear-gradient(135deg, ${mixColor(colors.primary, colors.background, 0.88)}, ${mixColor(colors.accent, colors.background, 0.85)})`,
-                      }}
-                    >
-                      <svg
-                        className="h-6 w-6"
-                        style={{ color: colors.primary }}
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={1.5}
-                      >
-                        {item.icon}
-                      </svg>
-                    </div>
-                    <p
-                      className="mb-1.5 text-xs font-semibold uppercase tracking-widest"
-                      style={{ color: mixColor(colors.text, colors.background, 0.55) }}
-                    >
-                      {item.label}
-                    </p>
-                    <p className="text-sm font-semibold" style={{ color: colors.text }}>
-                      {item.value}
-                    </p>
-                  </Tag>
-                );
-              })}
-            </div>
-          </Reveal>
-        )}
-
-        {/* Contact form */}
-        {show_form && siteId && (
-          <Reveal delay={240}>
-            <div className="mx-auto mt-14 max-w-lg text-left">
-              <h3
-                className="mb-6 text-center text-xl font-semibold"
+      <div className={`mx-auto ${isTwoColumn ? "max-w-5xl" : "max-w-4xl"}`}>
+        {/* Header */}
+        <div className={isTwoColumn ? "text-left" : "text-center"}>
+          {title && (
+            <Reveal>
+              <p
+                className="mb-3 text-sm font-semibold uppercase tracking-widest"
+                style={{ color: colors.primary }}
+              >
+                {t("section.contact", lang)}
+              </p>
+              <h2
+                className={`text-3xl ${theme.heading.weight} ${theme.heading.tracking} sm:text-4xl md:text-5xl`}
                 style={{ color: colors.text }}
               >
-                {t("contact.form.title", lang)}
-              </h3>
-              <ContactForm colors={colors} lang={lang} siteId={siteId} />
-            </div>
-          </Reveal>
+                {title}
+              </h2>
+            </Reveal>
+          )}
+          {text && (
+            <Reveal delay={80}>
+              <p
+                className={`mt-5 max-w-lg text-lg leading-relaxed ${isTwoColumn ? "" : "mx-auto"}`}
+                style={{ color: mixColor(colors.text, colors.background, 0.4) }}
+              >
+                {text}
+              </p>
+            </Reveal>
+          )}
+        </div>
+
+        {isTwoColumn ? (
+          /* Two-column layout: info on left, form on right */
+          <div className="mt-14 grid gap-12 sm:grid-cols-2">
+            {show_info && contactItems.length > 0 && (
+              <Reveal delay={160}>
+                <div className="flex flex-col gap-6">
+                  {contactItems.map((item, i) => {
+                    const Tag = item.href ? "a" : "div";
+                    return (
+                      <Tag
+                        key={i}
+                        {...(item.href ? { href: item.href } : {})}
+                        className="flex items-center gap-4 transition-colors"
+                      >
+                        <div
+                          className={`flex h-12 w-12 shrink-0 items-center justify-center ${variantStyle.iconRadius}`}
+                          style={{
+                            background: `linear-gradient(135deg, ${mixColor(colors.primary, colors.background, 0.88)}, ${mixColor(colors.accent, colors.background, 0.85)})`,
+                          }}
+                        >
+                          <svg
+                            className="h-5 w-5"
+                            style={{ color: colors.primary }}
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={1.5}
+                          >
+                            {item.icon}
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: mixColor(colors.text, colors.background, 0.55) }}>
+                            {item.label}
+                          </p>
+                          <p className="text-sm font-semibold" style={{ color: colors.text }}>
+                            {item.value}
+                          </p>
+                        </div>
+                      </Tag>
+                    );
+                  })}
+                </div>
+              </Reveal>
+            )}
+            {show_form && siteId && (
+              <Reveal delay={240}>
+                <ContactForm colors={colors} lang={lang} siteId={siteId} variantStyle={variantStyle} />
+              </Reveal>
+            )}
+          </div>
+        ) : (
+          /* Centered / card layout */
+          <>
+            {show_info && contactItems.length > 0 && (
+              <Reveal delay={160}>
+                <div className="mt-14">
+                  <ContactInfoItems contactItems={contactItems} colors={colors} variantStyle={variantStyle} />
+                </div>
+              </Reveal>
+            )}
+
+            {show_form && siteId && (
+              <Reveal delay={240}>
+                <div className={`mx-auto mt-14 max-w-lg text-left ${variantStyle.contactLayout === "card" ? `${variantStyle.cardRadius} ${variantStyle.cardBorder ? "border" : ""} ${variantStyle.cardPadding} ${variantStyle.cardShadow}` : ""}`}
+                  style={variantStyle.contactLayout === "card" ? {
+                    background: colors.background,
+                    ...(variantStyle.cardBorder ? { borderColor: mixColor(colors.text, colors.background, 0.93) } : {}),
+                  } : {}}
+                >
+                  <h3
+                    className="mb-6 text-center text-xl font-semibold"
+                    style={{ color: colors.text }}
+                  >
+                    {t("contact.form.title", lang)}
+                  </h3>
+                  <ContactForm colors={colors} lang={lang} siteId={siteId} variantStyle={variantStyle} />
+                </div>
+              </Reveal>
+            )}
+          </>
         )}
       </div>
     </SectionWrap>

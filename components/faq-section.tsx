@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Colors, FAQItem } from "@/lib/types";
 import type { Theme } from "@/lib/themes";
+import type { VariantStyle } from "@/lib/style-variants";
 import { mixColor } from "@/lib/colors";
 import { Reveal } from "./reveal";
 import { SectionWrap } from "./section-wrap";
@@ -10,17 +11,19 @@ import { SectionWrap } from "./section-wrap";
 function FAQAccordion({
   item,
   colors,
+  variantStyle,
   isOpen,
   onToggle,
 }: {
   item: FAQItem;
   colors: Colors;
+  variantStyle: VariantStyle;
   isOpen: boolean;
   onToggle: () => void;
 }) {
   return (
     <div
-      className="overflow-hidden rounded-2xl border transition-all duration-300"
+      className={`overflow-hidden ${variantStyle.cardRadius} border transition-all duration-300`}
       style={{
         background: colors.background,
         borderColor: isOpen
@@ -40,7 +43,7 @@ function FAQAccordion({
           {item.question}
         </span>
         <span
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-transform duration-300"
+          className={`flex h-8 w-8 shrink-0 items-center justify-center ${variantStyle.iconRadius} transition-transform duration-300`}
           style={{
             background: mixColor(colors.primary, colors.background, 0.9),
             color: colors.primary,
@@ -72,29 +75,107 @@ function FAQAccordion({
   );
 }
 
+function FAQCards({
+  items,
+  colors,
+  variantStyle,
+}: {
+  items: FAQItem[];
+  colors: Colors;
+  variantStyle: VariantStyle;
+}) {
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
+
+  return (
+    <div className={`grid gap-4 ${variantStyle.gridCols}`}>
+      {items.map((faq, i) => (
+        <Reveal key={i} delay={i * 60}>
+          <div
+            className={`h-full ${variantStyle.cardRadius} ${variantStyle.cardBorder ? "border" : ""} ${variantStyle.cardPadding} ${variantStyle.cardShadow} cursor-pointer transition-all duration-300 ${variantStyle.hoverEffect}`}
+            style={{
+              background: colors.background,
+              ...(variantStyle.cardBorder ? { borderColor: mixColor(colors.text, colors.background, 0.93) } : {}),
+            }}
+            onClick={() => setOpenIndex(openIndex === i ? null : i)}
+          >
+            <h3 className="mb-3 text-base font-semibold" style={{ color: colors.text }}>
+              {faq.question}
+            </h3>
+            <div
+              className="transition-all duration-300 ease-out overflow-hidden"
+              style={{ maxHeight: openIndex === i ? "300px" : "0", opacity: openIndex === i ? 1 : 0 }}
+            >
+              <p
+                className="text-sm leading-relaxed"
+                style={{ color: mixColor(colors.text, colors.background, 0.35) }}
+              >
+                {faq.answer}
+              </p>
+            </div>
+          </div>
+        </Reveal>
+      ))}
+    </div>
+  );
+}
+
+function FAQTwoColumn({
+  items,
+  colors,
+  variantStyle,
+}: {
+  items: FAQItem[];
+  colors: Colors;
+  variantStyle: VariantStyle;
+}) {
+  return (
+    <div className="grid gap-x-12 gap-y-8 sm:grid-cols-2">
+      {items.map((faq, i) => (
+        <Reveal key={i} delay={i * 60}>
+          <div>
+            <h3 className="mb-2 text-base font-semibold" style={{ color: colors.text }}>
+              {faq.question}
+            </h3>
+            <p
+              className="text-sm leading-relaxed"
+              style={{ color: mixColor(colors.text, colors.background, 0.35) }}
+            >
+              {faq.answer}
+            </p>
+          </div>
+        </Reveal>
+      ))}
+    </div>
+  );
+}
+
 export function FAQSection({
   title,
   subtitle,
   items,
   colors,
   theme,
+  variantStyle,
 }: {
   title?: string;
   subtitle?: string;
   items?: FAQItem[];
   colors: Colors;
   theme: Theme;
+  variantStyle: VariantStyle;
 }) {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   if (!items?.length) return null;
 
+  const isLeft = variantStyle.headerAlign === "left";
+
   return (
     <SectionWrap theme={theme} bg={colors.background}>
-      <div className="mx-auto max-w-3xl">
+      <div className={`mx-auto ${variantStyle.faqStyle === "two-column" ? "max-w-5xl" : "max-w-3xl"}`}>
         {title && (
           <Reveal>
-            <div className="mb-14 text-center">
+            <div className={`mb-14 ${isLeft ? "text-left" : "text-center"}`}>
               <p
                 className="mb-3 text-sm font-semibold uppercase tracking-widest"
                 style={{ color: colors.primary }}
@@ -109,7 +190,7 @@ export function FAQSection({
               </h2>
               {subtitle && (
                 <p
-                  className="mx-auto mt-5 max-w-lg text-lg leading-relaxed"
+                  className={`mt-5 max-w-lg text-lg leading-relaxed ${isLeft ? "" : "mx-auto"}`}
                   style={{ color: mixColor(colors.text, colors.background, 0.4) }}
                 >
                   {subtitle}
@@ -119,18 +200,27 @@ export function FAQSection({
           </Reveal>
         )}
 
-        <div className="flex flex-col gap-3">
-          {items.map((faq, i) => (
-            <Reveal key={i} delay={i * 60}>
-              <FAQAccordion
-                item={faq}
-                colors={colors}
-                isOpen={openIndex === i}
-                onToggle={() => setOpenIndex(openIndex === i ? null : i)}
-              />
-            </Reveal>
-          ))}
-        </div>
+        {variantStyle.faqStyle === "accordion" && (
+          <div className="flex flex-col gap-3">
+            {items.map((faq, i) => (
+              <Reveal key={i} delay={i * 60}>
+                <FAQAccordion
+                  item={faq}
+                  colors={colors}
+                  variantStyle={variantStyle}
+                  isOpen={openIndex === i}
+                  onToggle={() => setOpenIndex(openIndex === i ? null : i)}
+                />
+              </Reveal>
+            ))}
+          </div>
+        )}
+        {variantStyle.faqStyle === "cards" && (
+          <FAQCards items={items} colors={colors} variantStyle={variantStyle} />
+        )}
+        {variantStyle.faqStyle === "two-column" && (
+          <FAQTwoColumn items={items} colors={colors} variantStyle={variantStyle} />
+        )}
       </div>
     </SectionWrap>
   );

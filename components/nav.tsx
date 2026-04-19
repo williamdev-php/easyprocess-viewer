@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import type { Colors, NavItem } from "@/lib/types";
 import type { Theme } from "@/lib/themes";
+import type { VariantStyle } from "@/lib/style-variants";
 import { mixColor } from "@/lib/colors";
 import { sanitizeImageUrl } from "@/lib/sanitize";
 import { t } from "@/lib/i18n";
@@ -17,6 +18,7 @@ export function Nav({
   businessName,
   ctaHref,
   lang,
+  variantStyle,
 }: {
   items: NavItem[];
   colors: Colors;
@@ -25,6 +27,7 @@ export function Nav({
   businessName?: string;
   ctaHref?: string;
   lang?: string;
+  variantStyle: VariantStyle;
 }) {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -39,20 +42,27 @@ export function Nav({
   const logo = sanitizeImageUrl(logoUrl ?? undefined);
   const showLogo = logo && !logoError;
 
-  // Memoize color calculations to avoid re-computing on every render.
   const borderScrolled = useMemo(() => mixColor(colors.text, colors.background, 0.92), [colors.text, colors.background]);
   const borderDefault = useMemo(() => mixColor(colors.text, colors.background, 0.88), [colors.text, colors.background]);
   const navTextColor = useMemo(() => mixColor(colors.text, colors.background, 0.3), [colors.text, colors.background]);
   const mobileBg = useMemo(() => mixColor(colors.background, colors.text, 0.97), [colors.background, colors.text]);
   const mobileBorder = useMemo(() => mixColor(colors.text, colors.background, 0.92), [colors.text, colors.background]);
 
+  // Variant-driven radius for the floating nav pill
+  const navRadius = variantStyle.cardRadius;
+  const navLinkRadius = variantStyle.iconRadius;
+  const ctaRadius = variantStyle.buttonRadius;
+  const mobileMenuRadius = variantStyle.cardRadius;
+  const mobileLinkRadius = variantStyle.iconRadius;
+  const hasBorder = variantStyle.cardBorder;
+
   return (
     <div className={`fixed inset-x-0 top-0 z-50 transition-[padding] duration-500 ${scrolled ? "px-0" : "px-4 sm:px-6"}`}>
       <header
         className={`mx-auto transition-all duration-500 ease-out ${
           scrolled
-            ? "mt-0 max-w-full rounded-none border-b py-3"
-            : "mt-4 max-w-5xl rounded-2xl border py-3 sm:mt-5"
+            ? `mt-0 max-w-full rounded-none ${hasBorder ? "border-b" : ""} py-3`
+            : `mt-4 max-w-5xl ${navRadius} ${hasBorder ? "border" : ""} py-3 sm:mt-5`
         }`}
         style={{
           background: scrolled
@@ -63,6 +73,10 @@ export function Nav({
           borderColor: scrolled ? borderScrolled : borderDefault,
           boxShadow: scrolled
             ? "0 1px 3px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.06)"
+            : hasBorder
+            ? "0 4px 24px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)"
+            : variantStyle.cardShadow.includes("shadow-lg")
+            ? "0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.06)"
             : "0 4px 24px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)",
         }}
       >
@@ -94,7 +108,7 @@ export function Nav({
               <Link
                 key={i}
                 href={item.href}
-                className="rounded-lg px-3.5 py-2 text-[13px] font-medium transition-all duration-200 hover:bg-black/[0.05]"
+                className={`${navLinkRadius} px-3.5 py-2 text-[13px] font-medium transition-all duration-200 hover:bg-black/[0.05]`}
                 style={{ color: navTextColor }}
               >
                 {item.label}
@@ -103,7 +117,7 @@ export function Nav({
             {ctaHref && (
               <Link
                 href={ctaHref}
-                className="ml-2 rounded-xl px-5 py-2 text-[13px] font-semibold transition-all duration-200 hover:scale-[1.02] hover:brightness-110"
+                className={`ml-2 ${ctaRadius} px-5 py-2 text-[13px] font-semibold transition-all duration-200 hover:scale-[1.02] hover:brightness-110`}
                 style={{
                   background: colors.primary,
                   color: "#fff",
@@ -118,7 +132,7 @@ export function Nav({
           {/* Mobile burger */}
           <button
             onClick={() => setOpen(!open)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-black/[0.05] md:hidden"
+            className={`flex h-9 w-9 items-center justify-center ${navLinkRadius} transition-colors hover:bg-black/[0.05] md:hidden`}
             aria-label={t("nav.menu", lang)}
           >
             <div className="relative h-4 w-5">
@@ -145,7 +159,7 @@ export function Nav({
           }`}
         >
           <div
-            className="mx-3 rounded-xl border p-1.5"
+            className={`mx-3 ${mobileMenuRadius} ${hasBorder ? "border" : ""} p-1.5`}
             style={{
               background: mobileBg,
               borderColor: mobileBorder,
@@ -156,7 +170,7 @@ export function Nav({
                 key={i}
                 href={item.href}
                 onClick={() => setOpen(false)}
-                className="block rounded-lg px-4 py-2.5 text-[14px] font-medium transition-colors hover:bg-black/[0.04]"
+                className={`block ${mobileLinkRadius} px-4 py-2.5 text-[14px] font-medium transition-colors hover:bg-black/[0.04]`}
                 style={{ color: colors.text }}
               >
                 {item.label}
@@ -166,7 +180,7 @@ export function Nav({
               <Link
                 href={ctaHref}
                 onClick={() => setOpen(false)}
-                className="mt-1 block rounded-xl py-2.5 text-center text-[14px] font-semibold text-white"
+                className={`mt-1 block ${ctaRadius} py-2.5 text-center text-[14px] font-semibold text-white`}
                 style={{
                   background: colors.primary,
                   boxShadow: `0 2px 8px ${colors.primary}30`,

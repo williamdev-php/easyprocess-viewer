@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { fetchSiteData } from "@/lib/api";
 import { resolveColors } from "@/lib/colors";
 import { getTheme } from "@/lib/themes";
+import { getVariantStyle } from "@/lib/style-variants";
 import { t } from "@/lib/i18n";
 import { PageHeader } from "@/components/page-header";
 import { GallerySection } from "@/components/gallery-section";
@@ -29,6 +30,7 @@ export default async function GalleryPage({ params }: Props) {
 
   const colors = resolveColors(data);
   const theme = getTheme(data.theme);
+  const variantStyle = getVariantStyle(data.style_variant);
   const lang = data.meta?.language;
 
   if (!data.gallery?.images?.length) {
@@ -38,6 +40,7 @@ export default async function GalleryPage({ params }: Props) {
           title={t("nav.gallery", lang)}
           colors={colors}
           theme={theme}
+          variantStyle={variantStyle}
         />
         <div className="py-20 text-center text-gray-500">
           <p>{t("gallery.empty", lang)}</p>
@@ -52,6 +55,7 @@ export default async function GalleryPage({ params }: Props) {
         title={data.gallery.title || t("nav.gallery", lang)}
         colors={colors}
         theme={theme}
+        variantStyle={variantStyle}
       />
       <EditablePageWrapper section="gallery">
         <GallerySection
@@ -60,6 +64,7 @@ export default async function GalleryPage({ params }: Props) {
           theme={theme}
           variant="full"
           lang={lang}
+          variantStyle={variantStyle}
         />
       </EditablePageWrapper>
     </>

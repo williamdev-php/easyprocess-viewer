@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { Colors, ServiceItem } from "@/lib/types";
 import type { Theme } from "@/lib/themes";
+import type { VariantStyle } from "@/lib/style-variants";
 import { mixColor } from "@/lib/colors";
 import { t } from "@/lib/i18n";
 import { Reveal } from "./reveal";
@@ -26,6 +27,7 @@ export function ServicesSection({
   variant = "full",
   siteId,
   lang,
+  variantStyle,
 }: {
   title?: string;
   subtitle?: string;
@@ -35,19 +37,24 @@ export function ServicesSection({
   variant?: "snippet" | "full";
   siteId?: string;
   lang?: string;
+  variantStyle: VariantStyle;
 }) {
   if (!items?.length) return null;
 
   const displayItems = variant === "snippet" ? items.slice(0, 3) : items;
   const hasMore = variant === "snippet" && items.length > 3;
   const tintBg = mixColor(colors.primary, colors.background, 0.97);
+  const isLeft = variantStyle.headerAlign === "left";
+  const borderStyle = variantStyle.cardBorder
+    ? { borderColor: mixColor(colors.text, colors.background, 0.93) }
+    : {};
 
   return (
     <SectionWrap theme={theme} bg={tintBg}>
       <div className="mx-auto max-w-6xl">
         {title && (
           <Reveal>
-            <div className="mb-16 text-center">
+            <div className={`mb-16 ${isLeft ? "text-left" : "text-center"}`}>
               <p
                 className="mb-3 text-sm font-semibold uppercase tracking-widest"
                 style={{ color: colors.primary }}
@@ -62,7 +69,7 @@ export function ServicesSection({
               </h2>
               {subtitle && (
                 <p
-                  className="mx-auto mt-5 max-w-lg text-lg leading-relaxed"
+                  className={`mt-5 max-w-lg text-lg leading-relaxed ${isLeft ? "" : "mx-auto"}`}
                   style={{ color: mixColor(colors.text, colors.background, 0.4) }}
                 >
                   {subtitle}
@@ -72,26 +79,26 @@ export function ServicesSection({
           </Reveal>
         )}
 
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className={`grid gap-5 ${variantStyle.gridCols}`}>
           {displayItems.map((svc, i) => (
             <Reveal key={i} delay={i * 70}>
               <div
-                className="group relative h-full overflow-hidden rounded-2xl border p-7 transition-all duration-300 hover:-translate-y-1 sm:p-8"
+                className={`group relative h-full overflow-hidden ${variantStyle.cardRadius} ${variantStyle.cardBorder ? "border" : ""} ${variantStyle.cardPadding} transition-all duration-300 ${variantStyle.hoverEffect} ${variantStyle.cardShadow}`}
                 style={{
                   background: colors.background,
-                  borderColor: mixColor(colors.text, colors.background, 0.93),
-                  boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
+                  ...borderStyle,
                 }}
               >
-                {/* Hover gradient glow */}
-                <div
-                  className="absolute -right-12 -top-12 h-32 w-32 rounded-full opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-100"
-                  style={{ background: colors.primary }}
-                />
+                {variantStyle.showDecorations && (
+                  <div
+                    className="absolute -right-12 -top-12 h-32 w-32 rounded-full opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-100"
+                    style={{ background: colors.primary }}
+                  />
+                )}
 
                 <div className="relative">
                   <div
-                    className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl"
+                    className={`mb-5 flex items-center justify-center ${variantStyle.iconRadius} ${variantStyle.iconSize}`}
                     style={{
                       background: `linear-gradient(135deg, ${mixColor(colors.primary, colors.background, 0.88)}, ${mixColor(colors.accent, colors.background, 0.85)})`,
                     }}
@@ -135,7 +142,7 @@ export function ServicesSection({
             <div className="mt-14 text-center">
               <Link
                 href={`/${siteId}/services`}
-                className="group inline-flex items-center gap-2.5 rounded-2xl px-8 py-4 text-sm font-semibold transition-all duration-300 hover:scale-[1.02] hover:brightness-110"
+                className={`group inline-flex items-center gap-2.5 ${variantStyle.buttonRadius} px-8 py-4 text-sm font-semibold transition-all duration-300 hover:scale-[1.02] hover:brightness-110`}
                 style={{
                   background: colors.primary,
                   color: "#fff",

@@ -2,6 +2,7 @@
 
 import type { Colors, TestimonialItem } from "@/lib/types";
 import type { Theme } from "@/lib/themes";
+import type { VariantStyle } from "@/lib/style-variants";
 import { mixColor } from "@/lib/colors";
 import { t } from "@/lib/i18n";
 import { Reveal } from "./reveal";
@@ -19,6 +20,134 @@ function StarRating({ color }: { color: string }) {
   );
 }
 
+function CardTestimonial({
+  item,
+  colors,
+  variantStyle,
+  show_ratings,
+  delay,
+}: {
+  item: TestimonialItem;
+  colors: Colors;
+  variantStyle: VariantStyle;
+  show_ratings: boolean;
+  delay: number;
+}) {
+  return (
+    <Reveal delay={delay}>
+      <div
+        className={`group h-full ${variantStyle.cardRadius} ${variantStyle.cardBorder ? "border" : ""} ${variantStyle.cardPadding} transition-all duration-300 ${variantStyle.hoverEffect} ${variantStyle.cardShadow}`}
+        style={{
+          background: colors.background,
+          ...(variantStyle.cardBorder ? { borderColor: mixColor(colors.text, colors.background, 0.93) } : {}),
+        }}
+      >
+        {show_ratings && <StarRating color={colors.accent} />}
+        <p
+          className="mb-7 text-[15px] leading-relaxed"
+          style={{ color: mixColor(colors.text, colors.background, 0.25) }}
+        >
+          &ldquo;{item.text}&rdquo;
+        </p>
+        <div className="flex items-center gap-3">
+          <div
+            className={`flex h-11 w-11 items-center justify-center ${variantStyle.iconRadius} text-sm font-bold text-white`}
+            style={{
+              background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
+            }}
+          >
+            {item.author.charAt(0)}
+          </div>
+          <div>
+            <p className="text-sm font-semibold" style={{ color: colors.text }}>
+              {item.author}
+            </p>
+            {item.role && (
+              <p className="text-xs" style={{ color: mixColor(colors.text, colors.background, 0.5) }}>
+                {item.role}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    </Reveal>
+  );
+}
+
+function QuoteTestimonial({
+  item,
+  colors,
+  show_ratings,
+  delay,
+}: {
+  item: TestimonialItem;
+  colors: Colors;
+  show_ratings: boolean;
+  delay: number;
+}) {
+  return (
+    <Reveal delay={delay}>
+      <div className="h-full border-l-4 py-2 pl-6" style={{ borderColor: colors.primary }}>
+        {show_ratings && <StarRating color={colors.accent} />}
+        <p
+          className="mb-5 text-lg font-medium italic leading-relaxed"
+          style={{ color: mixColor(colors.text, colors.background, 0.2) }}
+        >
+          &ldquo;{item.text}&rdquo;
+        </p>
+        <p className="text-sm font-semibold" style={{ color: colors.text }}>
+          {item.author}
+          {item.role && (
+            <span className="font-normal" style={{ color: mixColor(colors.text, colors.background, 0.5) }}>
+              {" "}&mdash; {item.role}
+            </span>
+          )}
+        </p>
+      </div>
+    </Reveal>
+  );
+}
+
+function MinimalTestimonial({
+  item,
+  colors,
+  show_ratings,
+  delay,
+}: {
+  item: TestimonialItem;
+  colors: Colors;
+  show_ratings: boolean;
+  delay: number;
+}) {
+  return (
+    <Reveal delay={delay}>
+      <div className="h-full text-center">
+        <div
+          className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full text-2xl font-bold text-white"
+          style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
+        >
+          {item.author.charAt(0)}
+        </div>
+        {show_ratings && <div className="flex justify-center"><StarRating color={colors.accent} /></div>}
+        <p
+          className="mb-4 text-base leading-relaxed"
+          style={{ color: mixColor(colors.text, colors.background, 0.25) }}
+        >
+          &ldquo;{item.text}&rdquo;
+        </p>
+        <p className="text-sm font-semibold" style={{ color: colors.text }}>
+          {item.author}
+        </p>
+        {item.role && (
+          <p className="text-xs" style={{ color: mixColor(colors.text, colors.background, 0.5) }}>
+            {item.role}
+          </p>
+        )}
+      </div>
+    </Reveal>
+  );
+}
+
 export function TestimonialsSection({
   title,
   items,
@@ -26,6 +155,7 @@ export function TestimonialsSection({
   theme,
   lang,
   show_ratings = true,
+  variantStyle,
 }: {
   title?: string;
   items?: TestimonialItem[];
@@ -33,17 +163,19 @@ export function TestimonialsSection({
   theme: Theme;
   lang?: string;
   show_ratings?: boolean;
+  variantStyle: VariantStyle;
 }) {
   if (!items?.length) return null;
 
   const tintBg = mixColor(colors.primary, colors.background, 0.97);
+  const isLeft = variantStyle.headerAlign === "left";
 
   return (
     <SectionWrap theme={theme} bg={tintBg}>
       <div className="mx-auto max-w-6xl">
         {title && (
           <Reveal>
-            <div className="mb-16 text-center">
+            <div className={`mb-16 ${isLeft ? "text-left" : "text-center"}`}>
               <p
                 className="mb-3 text-sm font-semibold uppercase tracking-widest"
                 style={{ color: colors.primary }}
@@ -59,47 +191,18 @@ export function TestimonialsSection({
             </div>
           </Reveal>
         )}
-        <div className="grid gap-5 sm:grid-cols-2">
-          {items.map((t, i) => (
-            <Reveal key={i} delay={i * 80}>
-              <div
-                className="group h-full rounded-2xl border p-7 transition-all duration-300 hover:-translate-y-0.5 sm:p-8"
-                style={{
-                  background: colors.background,
-                  borderColor: mixColor(colors.text, colors.background, 0.93),
-                  boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
-                }}
-              >
-                {show_ratings && <StarRating color={colors.accent} />}
-                <p
-                  className="mb-7 text-[15px] leading-relaxed"
-                  style={{ color: mixColor(colors.text, colors.background, 0.25) }}
-                >
-                  &ldquo;{t.text}&rdquo;
-                </p>
-                <div className="flex items-center gap-3">
-                  <div
-                    className="flex h-11 w-11 items-center justify-center rounded-full text-sm font-bold text-white"
-                    style={{
-                      background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
-                    }}
-                  >
-                    {t.author.charAt(0)}
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold" style={{ color: colors.text }}>
-                      {t.author}
-                    </p>
-                    {t.role && (
-                      <p className="text-xs" style={{ color: mixColor(colors.text, colors.background, 0.5) }}>
-                        {t.role}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </Reveal>
-          ))}
+
+        <div className={`grid gap-5 ${variantStyle.testimonialStyle === "minimal" ? "sm:grid-cols-2 lg:grid-cols-3" : "sm:grid-cols-2"}`}>
+          {items.map((item, i) => {
+            switch (variantStyle.testimonialStyle) {
+              case "quote":
+                return <QuoteTestimonial key={i} item={item} colors={colors} show_ratings={show_ratings} delay={i * 80} />;
+              case "minimal":
+                return <MinimalTestimonial key={i} item={item} colors={colors} show_ratings={show_ratings} delay={i * 80} />;
+              default:
+                return <CardTestimonial key={i} item={item} colors={colors} variantStyle={variantStyle} show_ratings={show_ratings} delay={i * 80} />;
+            }
+          })}
         </div>
       </div>
     </SectionWrap>
