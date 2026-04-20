@@ -8,6 +8,7 @@ import type { VariantStyle } from "@/lib/style-variants";
 import { mixColor } from "@/lib/colors";
 import { t } from "@/lib/i18n";
 import { API_URL } from "@/lib/api";
+import { sanitizeEmail, sanitizePhone } from "@/lib/sanitize";
 import { Reveal } from "./reveal";
 import { SectionWrap } from "./section-wrap";
 
@@ -272,8 +273,11 @@ export function ContactSection({
   show_info?: boolean;
   variantStyle: VariantStyle;
 }) {
+  const safeEmail = sanitizeEmail(email);
+  const safePhone = sanitizePhone(phone);
+
   const contactItems = [
-    email && {
+    safeEmail && {
       icon: (
         <path
           strokeLinecap="round"
@@ -282,10 +286,10 @@ export function ContactSection({
         />
       ),
       label: t("contact.email", lang),
-      value: email,
-      href: `mailto:${email}`,
+      value: safeEmail,
+      href: `mailto:${safeEmail}`,
     },
-    phone && {
+    safePhone && {
       icon: (
         <path
           strokeLinecap="round"
@@ -294,8 +298,8 @@ export function ContactSection({
         />
       ),
       label: t("contact.phone", lang),
-      value: phone,
-      href: `tel:${phone}`,
+      value: safePhone,
+      href: `tel:${safePhone}`,
     },
     address && {
       icon: (

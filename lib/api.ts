@@ -1,4 +1,5 @@
 import type { SiteData, SiteMeta, SiteResponse } from "./types";
+import { limitSectionArrays } from "./sanitize";
 
 /** Centralised API base URL — single source of truth for all fetch calls. */
 export const API_URL =
@@ -41,6 +42,8 @@ export async function fetchSiteResponse(siteId: string): Promise<SiteResponse | 
     const data = await res.json();
     if (!isSiteData(data.site_data)) return null;
     const siteData = data.site_data as SiteData;
+    // Limit array sizes to prevent DoS from oversized payloads
+    limitSectionArrays(siteData as unknown as Record<string, unknown>);
     // Merge template field as theme fallback
     if (!siteData.theme && data.template && data.template !== "default") {
       siteData.theme = data.template;

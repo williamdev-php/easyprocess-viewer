@@ -19,6 +19,7 @@ import { CTASection } from "@/components/cta-section";
 import { GallerySection } from "@/components/gallery-section";
 import { ContactSection } from "@/components/contact-section";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { sanitizeFontFamily } from "@/lib/sanitize";
 
 interface Props {
   initialData: SiteData;
@@ -38,10 +39,15 @@ export function PreviewShell({ initialData, siteId }: Props) {
   // postMessage: receive SITE_DATA_UPDATE from editor, send back events
   // ------------------------------------------------------------------
   useEffect(() => {
+    const allowedOrigins = [
+      process.env.NEXT_PUBLIC_EDITOR_ORIGIN,
+      process.env.NEXT_PUBLIC_FRONTEND_URL,
+      window.location.origin,
+    ].filter(Boolean) as string[];
+
     function handleMessage(event: MessageEvent) {
-      // Accept SITE_DATA_UPDATE from any origin — this page only runs
-      // inside the editor iframe so there is no risk. We remember the
-      // first origin that sends a valid message so we can reply to it.
+      if (!allowedOrigins.includes(event.origin)) return;
+
       if (event.data?.type === "SITE_DATA_UPDATE" && event.data.siteData) {
         if (!parentOriginRef.current) {
           parentOriginRef.current = event.origin;
@@ -53,8 +59,9 @@ export function PreviewShell({ initialData, siteId }: Props) {
     window.addEventListener("message", handleMessage);
 
     // Tell the parent we're ready to receive data
+    const targetOrigin = allowedOrigins[0] || window.location.origin;
     try {
-      window.parent.postMessage({ type: "PREVIEW_READY" }, "*");
+      window.parent.postMessage({ type: "PREVIEW_READY" }, targetOrigin);
     } catch { /* not in iframe */ }
 
     return () => window.removeEventListener("message", handleMessage);
@@ -62,9 +69,9 @@ export function PreviewShell({ initialData, siteId }: Props) {
 
   // Notify parent when user clicks a section
   const handleSectionClick = useCallback((section: string) => {
-    const origin = parentOriginRef.current || "*";
+    if (!parentOriginRef.current) return;
     try {
-      window.parent.postMessage({ type: "SECTION_CLICKED", section }, origin);
+      window.parent.postMessage({ type: "SECTION_CLICKED", section }, parentOriginRef.current);
     } catch { /* ignore */ }
   }, []);
 
@@ -177,8 +184,8 @@ export function PreviewShell({ initialData, siteId }: Props) {
   return (
     <div
       style={{
-        fontFamily: data.branding?.fonts?.body
-          ? `${data.branding.fonts.body}, -apple-system, BlinkMacSystemFont, sans-serif`
+        fontFamily: sanitizeFontFamily(data.branding?.fonts?.body)
+          ? `${sanitizeFontFamily(data.branding?.fonts?.body)}, -apple-system, BlinkMacSystemFont, sans-serif`
           : `Inter, -apple-system, BlinkMacSystemFont, sans-serif`,
         background: colors.background,
         minHeight: "100vh",

@@ -21,12 +21,11 @@ const translations = {
 };
 
 interface DraftBannerProps {
-  claimToken?: string;
   createdAt?: string;
   lang?: string;
 }
 
-export function DraftBanner({ claimToken, createdAt, lang }: DraftBannerProps) {
+export function DraftBanner({ createdAt, lang }: DraftBannerProps) {
   const t = translations[lang === "en" ? "en" : "sv"];
 
   const daysRemaining = useMemo(() => {
@@ -37,10 +36,6 @@ export function DraftBanner({ claimToken, createdAt, lang }: DraftBannerProps) {
     const diff = Math.max(0, Math.ceil((expires.getTime() - now.getTime()) / (24 * 60 * 60 * 1000)));
     return diff;
   }, [createdAt]);
-
-  const activateUrl = claimToken
-    ? `${FRONTEND_URL}/claim?token=${claimToken}`
-    : undefined;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50">
@@ -66,21 +61,19 @@ export function DraftBanner({ claimToken, createdAt, lang }: DraftBannerProps) {
           </span>
         </div>
 
-        {activateUrl && (
-          <a
-            href={activateUrl}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-all hover:scale-105"
-            style={{
-              background: "#fff",
-              color: "#d97706",
-            }}
-          >
-            {t.activate}
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-            </svg>
-          </a>
-        )}
+        <a
+          href={FRONTEND_URL}
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-all hover:scale-105"
+          style={{
+            background: "#fff",
+            color: "#d97706",
+          }}
+        >
+          {t.activate}
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+          </svg>
+        </a>
       </div>
     </div>
   );

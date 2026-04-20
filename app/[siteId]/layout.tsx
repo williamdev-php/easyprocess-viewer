@@ -10,6 +10,7 @@ import { Nav } from "@/components/nav";
 import { Footer } from "@/components/footer";
 import { Analytics } from "@/components/analytics";
 import { DraftBanner } from "@/components/draft-banner";
+import { sanitizeFontFamily } from "@/lib/sanitize";
 
 interface Props {
   params: Promise<{ siteId: string }>;
@@ -61,8 +62,8 @@ export default async function SiteLayout({ params, children }: Props) {
     <div
       className="min-h-screen"
       style={{
-        fontFamily: siteData.branding?.fonts?.body
-          ? `${siteData.branding.fonts.body}, -apple-system, BlinkMacSystemFont, sans-serif`
+        fontFamily: sanitizeFontFamily(siteData.branding?.fonts?.body)
+          ? `${sanitizeFontFamily(siteData.branding?.fonts?.body)}, -apple-system, BlinkMacSystemFont, sans-serif`
           : `Inter, -apple-system, BlinkMacSystemFont, sans-serif`,
         background: colors.background,
       }}
@@ -81,7 +82,6 @@ export default async function SiteLayout({ params, children }: Props) {
       <main>{children}</main>
       {isDraft && (
         <DraftBanner
-          claimToken={siteResponse.claim_token ?? undefined}
           createdAt={siteResponse.created_at ?? undefined}
           lang={lang}
         />

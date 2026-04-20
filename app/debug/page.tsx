@@ -322,9 +322,17 @@ function TabButton({
 }
 
 // ---------------------------------------------------------------------------
-// Debug page
+// Debug page — only available in development
 // ---------------------------------------------------------------------------
 export default function DebugPage() {
+  if (process.env.NODE_ENV === "production") {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-900 text-white">
+        <p>Not available.</p>
+      </div>
+    );
+  }
+
   const [activeVariant, setActiveVariant] = useState(0);
 
   const variantStyle = getVariantStyle(activeVariant);

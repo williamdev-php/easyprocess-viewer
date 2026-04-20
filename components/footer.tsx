@@ -3,7 +3,7 @@ import type { Colors, NavItem } from "@/lib/types";
 import type { Theme } from "@/lib/themes";
 import type { VariantStyle } from "@/lib/style-variants";
 import { adjustColor, mixColor } from "@/lib/colors";
-import { sanitizeUrl } from "@/lib/sanitize";
+import { sanitizeUrl, sanitizeEmail, sanitizePhone } from "@/lib/sanitize";
 import { t } from "@/lib/i18n";
 
 const SOCIAL_ICONS: Record<string, string> = {
@@ -111,14 +111,14 @@ export function Footer({
               {t("footer.contact", lang)}
             </p>
             <div className="flex flex-col gap-2.5 text-sm" style={{ color: textMuted }}>
-              {email && (
-                <a href={`mailto:${email}`} className="transition-colors duration-200 hover:text-white">
-                  {email}
+              {sanitizeEmail(email) && (
+                <a href={`mailto:${sanitizeEmail(email)}`} className="transition-colors duration-200 hover:text-white">
+                  {sanitizeEmail(email)}
                 </a>
               )}
-              {phone && (
-                <a href={`tel:${phone}`} className="transition-colors duration-200 hover:text-white">
-                  {phone}
+              {sanitizePhone(phone) && (
+                <a href={`tel:${sanitizePhone(phone)}`} className="transition-colors duration-200 hover:text-white">
+                  {sanitizePhone(phone)}
                 </a>
               )}
             </div>
