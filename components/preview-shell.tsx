@@ -20,6 +20,8 @@ import { GallerySection } from "@/components/gallery-section";
 import { ContactSection } from "@/components/contact-section";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { sanitizeFontFamily } from "@/lib/sanitize";
+import { resolveVersion, getVersionRenderer } from "@/lib/version-registry";
+import type { RenderContext } from "@/lib/version-registry";
 
 interface Props {
   initialData: SiteData;
@@ -84,6 +86,50 @@ export function PreviewShell({ initialData, siteId }: Props) {
   const lang = data.meta?.language || "sv";
   const sectionOrder = data.section_order ?? DEFAULT_ORDER;
 
+  // Check if this site uses a non-v1 version with a dedicated renderer
+  const version = resolveVersion(data);
+  const versionRenderer = getVersionRenderer(version);
+
+  if (versionRenderer) {
+    // Future versions (v2+) use their own renderer from the version registry
+    const ctx: RenderContext = { data, colors, theme, variantStyle, lang, siteId };
+    return (
+      <div
+        style={{
+          fontFamily: sanitizeFontFamily(data.branding?.fonts?.body)
+            ? `${sanitizeFontFamily(data.branding?.fonts?.body)}, -apple-system, BlinkMacSystemFont, sans-serif`
+            : `Inter, -apple-system, BlinkMacSystemFont, sans-serif`,
+          background: colors.background,
+          minHeight: "100vh",
+        }}
+      >
+        {sectionOrder.map((key) => {
+          const node = versionRenderer(key, ctx);
+          if (!node) return null;
+          return (
+            <ErrorBoundary sectionName={key} key={key}>
+              <div
+                onClick={(e) => {
+                  if ((e.target as HTMLElement).closest("a")) return;
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleSectionClick(key);
+                }}
+                className="relative cursor-pointer transition-all duration-150 hover:outline hover:outline-2 hover:outline-blue-400/60 hover:outline-offset-[-2px]"
+              >
+                <div className="pointer-events-none absolute top-2 right-2 z-50 rounded bg-blue-500 px-2 py-0.5 text-[10px] font-medium text-white opacity-0 transition-opacity [div:hover>&]:opacity-100 shadow-sm">
+                  Redigera
+                </div>
+                {node}
+              </div>
+            </ErrorBoundary>
+          );
+        })}
+      </div>
+    );
+  }
+
+  // v1 renderer — the original inline rendering (frozen after production launch)
   const renderSection = (key: string) => {
     const sectionData = (data as Record<string, any>)[key];
     if (!sectionData) return null;

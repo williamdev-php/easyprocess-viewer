@@ -73,6 +73,8 @@ export interface SiteData {
   section_order?: string[];
   theme?: string;
   style_variant?: number;
+  /** Viewer version — locks this site to a specific component set. Defaults to "v1". */
+  viewer_version?: string;
   branding?: {
     logo_url?: string | null;
     colors?: Partial<Colors>;

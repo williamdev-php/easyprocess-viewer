@@ -9,6 +9,34 @@ const API_URL = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http:
 const BASE_DOMAIN = process.env.BASE_DOMAIN ?? "qvickosite.com";
 
 /**
+ * Simple in-memory cache for subdomain/domain → API response.
+ * Avoids hitting the backend on every single request.
+ * TTL: 60 seconds. Max 500 entries (LRU eviction on overflow).
+ */
+const RESOLVE_CACHE_TTL = 60_000;
+const RESOLVE_CACHE_MAX = 500;
+const resolveCache = new Map<string, { data: Record<string, unknown>; ts: number }>();
+
+function getCachedResolve(key: string): Record<string, unknown> | null {
+  const entry = resolveCache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.ts > RESOLVE_CACHE_TTL) {
+    resolveCache.delete(key);
+    return null;
+  }
+  return entry.data;
+}
+
+function setCachedResolve(key: string, data: Record<string, unknown>) {
+  // Evict oldest entries if cache is full
+  if (resolveCache.size >= RESOLVE_CACHE_MAX) {
+    const oldest = resolveCache.keys().next().value;
+    if (oldest !== undefined) resolveCache.delete(oldest);
+  }
+  resolveCache.set(key, { data, ts: Date.now() });
+}
+
+/**
  * Proxy that handles subdomain and custom domain routing:
  *
  * 1. Redirect bare qvickosite.com → qvicko.com
@@ -65,28 +93,47 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // --- Resolve via API ---
+  // --- Resolve via API (with caching) ---
   try {
-    const param = subdomain
-      ? `subdomain=${encodeURIComponent(subdomain)}`
-      : `domain=${encodeURIComponent(customDomain!)}`;
+    const cacheKey = subdomain ? `sub:${subdomain}` : `dom:${customDomain}`;
+    let data = getCachedResolve(cacheKey) as Record<string, unknown> | null;
 
-    const res = await fetch(`${API_URL}/api/sites/resolve?${param}`, {
-      headers: { Accept: "application/json" },
-    });
+    if (!data) {
+      const param = subdomain
+        ? `subdomain=${encodeURIComponent(subdomain)}`
+        : `domain=${encodeURIComponent(customDomain!)}`;
 
-    if (!res.ok) {
-      return NextResponse.next();
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      const res = await fetch(`${API_URL}/api/sites/resolve?${param}`, {
+        headers: { Accept: "application/json" },
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+
+      if (!res.ok) {
+        return NextResponse.next();
+      }
+
+      data = await res.json();
+      setCachedResolve(cacheKey, data as Record<string, unknown>);
     }
-
-    const data = await res.json();
 
     // If accessing via subdomain and a custom domain is active, redirect
     if (subdomain && data.redirect_to) {
-      const redirectUrl = new URL(data.redirect_to);
-      redirectUrl.pathname = pathname;
-      redirectUrl.search = request.nextUrl.search;
-      return NextResponse.redirect(redirectUrl, 301);
+      try {
+        const redirectUrl = new URL(data.redirect_to);
+        // Only allow HTTPS redirects to prevent open redirect
+        if (redirectUrl.protocol !== "https:") {
+          return NextResponse.next();
+        }
+        redirectUrl.pathname = pathname;
+        redirectUrl.search = request.nextUrl.search;
+        return NextResponse.redirect(redirectUrl, 301);
+      } catch {
+        // Invalid redirect URL from API — skip redirect
+        return NextResponse.next();
+      }
     }
 
     // Rewrite to /[siteId]/... so the app routes handle rendering

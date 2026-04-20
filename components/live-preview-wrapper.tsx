@@ -21,6 +21,8 @@ const GallerySection = dynamic(() => import("@/components/gallery-section").then
 const ContactSection = dynamic(() => import("@/components/contact-section").then(m => ({ default: m.ContactSection })));
 import { ErrorBoundary } from "@/components/error-boundary";
 import { t } from "@/lib/i18n";
+import { resolveVersion, getVersionRenderer } from "@/lib/version-registry";
+import type { RenderContext } from "@/lib/version-registry";
 
 interface Props {
   initialData: SiteData;
@@ -103,6 +105,31 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
   ];
   const sectionOrder = data.section_order ?? DEFAULT_ORDER;
 
+  // Check if this site uses a non-v1 version with a dedicated renderer
+  const version = resolveVersion(data);
+  const versionRenderer = getVersionRenderer(version);
+
+  if (versionRenderer) {
+    // Future versions (v2+) use their own renderer from the version registry
+    const ctx: RenderContext = { data, colors, theme, variantStyle, lang, siteId };
+    return (
+      <>
+        {sectionOrder.map((key) => {
+          const node = versionRenderer(key, ctx);
+          if (!node) return null;
+          return (
+            <ErrorBoundary sectionName={key} key={key}>
+              <EditableSection section={key} isEditing={isEditing}>
+                {node}
+              </EditableSection>
+            </ErrorBoundary>
+          );
+        })}
+      </>
+    );
+  }
+
+  // v1 renderer — the original inline rendering (frozen after production launch)
   const renderSection = (key: string) => {
     switch (key) {
       case "hero":

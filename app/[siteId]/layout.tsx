@@ -11,6 +11,7 @@ import { Footer } from "@/components/footer";
 import { Analytics } from "@/components/analytics";
 import { DraftBanner } from "@/components/draft-banner";
 import { sanitizeFontFamily } from "@/lib/sanitize";
+import { resolveVersion, getNavRenderer, getFooterRenderer } from "@/lib/version-registry";
 
 interface Props {
   params: Promise<{ siteId: string }>;
@@ -58,6 +59,13 @@ export default async function SiteLayout({ params, children }: Props) {
     ? `${base}/contact`
     : undefined;
 
+  // Version-aware rendering for Nav/Footer
+  const version = resolveVersion(siteData);
+  const customNavRenderer = getNavRenderer(version);
+  const customFooterRenderer = getFooterRenderer(version);
+
+  const renderCtx = { data: siteData, colors, theme, variantStyle, lang, siteId };
+
   return (
     <div
       className="min-h-screen"
@@ -68,16 +76,21 @@ export default async function SiteLayout({ params, children }: Props) {
         background: colors.background,
       }}
     >
-      <Nav
-        items={navItems}
-        colors={colors}
-        theme={theme}
-        logoUrl={siteData.branding?.logo_url}
-        businessName={biz?.name}
-        ctaHref={ctaHref}
-        lang={lang}
-        variantStyle={variantStyle}
-      />
+      {customNavRenderer
+        ? customNavRenderer({ ...renderCtx, items: navItems, logoUrl: siteData.branding?.logo_url, businessName: biz?.name, ctaHref })
+        : (
+          <Nav
+            items={navItems}
+            colors={colors}
+            theme={theme}
+            logoUrl={siteData.branding?.logo_url}
+            businessName={biz?.name}
+            ctaHref={ctaHref}
+            lang={lang}
+            variantStyle={variantStyle}
+          />
+        )
+      }
       <Analytics siteId={siteId} />
       <main>{children}</main>
       {isDraft && (
@@ -86,18 +99,23 @@ export default async function SiteLayout({ params, children }: Props) {
           lang={lang}
         />
       )}
-      <Footer
-        businessName={biz?.name}
-        email={biz?.email}
-        phone={biz?.phone}
-        address={biz?.address}
-        socialLinks={biz?.social_links}
-        navItems={navItems}
-        colors={colors}
-        theme={theme}
-        lang={lang}
-        variantStyle={variantStyle}
-      />
+      {customFooterRenderer
+        ? customFooterRenderer({ ...renderCtx, businessName: biz?.name, email: biz?.email, phone: biz?.phone, address: biz?.address, socialLinks: biz?.social_links, navItems })
+        : (
+          <Footer
+            businessName={biz?.name}
+            email={biz?.email}
+            phone={biz?.phone}
+            address={biz?.address}
+            socialLinks={biz?.social_links}
+            navItems={navItems}
+            colors={colors}
+            theme={theme}
+            lang={lang}
+            variantStyle={variantStyle}
+          />
+        )
+      }
     </div>
   );
 }

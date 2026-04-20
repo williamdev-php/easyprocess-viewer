@@ -62,6 +62,10 @@ export interface VariantStyle {
   ctaLayout: "centered" | "split" | "minimal";
   /** Contact layout */
   contactLayout: "centered" | "two-column" | "card";
+  /** Nav layout */
+  navStyle: "floating" | "sticky" | "minimal";
+  /** Footer layout */
+  footerStyle: "columns" | "centered" | "minimal";
 }
 
 /**
@@ -72,7 +76,7 @@ export interface VariantStyle {
 const variant0: VariantStyle = {
   id: 0,
   name: "Original",
-  description: "Den ursprungliga designen. Rundade kort med border, centrerade rubriker, dekorativa gradient-blobbar, vertikal timeline-process, accordion-FAQ.",
+  description: "Den ursprungliga designen. Rundade kort med border, centrerade rubriker, dekorativa gradient-blobbar, vertikal timeline-process, accordion-FAQ, flytande pill-nav, kolumn-footer.",
   cardRadius: "rounded-2xl",
   cardBorder: true,
   cardShadow: "shadow-[0_1px_2px_rgba(0,0,0,0.04)]",
@@ -94,6 +98,8 @@ const variant0: VariantStyle = {
   teamStyle: "card",
   ctaLayout: "centered",
   contactLayout: "centered",
+  navStyle: "floating",
+  footerStyle: "columns",
 };
 
 /**
@@ -103,7 +109,7 @@ const variant0: VariantStyle = {
 const variant1: VariantStyle = {
   id: 1,
   name: "Modern Cards",
-  description: "Moderna kort med mjuka skuggor. 2-kolumnig layout, kort-baserad process, citat-testimonials, featured galleri med stor förstabild.",
+  description: "Moderna kort med mjuka skuggor. 2-kolumnig layout, kort-baserad process, citat-testimonials, featured galleri med stor förstabild, sticky header, kolumn-footer.",
   cardRadius: "rounded-xl",
   cardBorder: true,
   cardShadow: "shadow-md shadow-black/[0.04]",
@@ -125,6 +131,8 @@ const variant1: VariantStyle = {
   teamStyle: "card",
   ctaLayout: "centered",
   contactLayout: "card",
+  navStyle: "sticky",
+  footerStyle: "columns",
 };
 
 /**
@@ -134,7 +142,7 @@ const variant1: VariantStyle = {
 const variant2: VariantStyle = {
   id: 2,
   name: "Clean & Minimal",
-  description: "Ren och minimalistisk. Vänsterjusterade rubriker, inga dekorationer, liten border-radius, tvåkolumns-FAQ, horisontella teamkort, split CTA-layout.",
+  description: "Ren och minimalistisk. Vänsterjusterade rubriker, inga dekorationer, liten border-radius, tvåkolumns-FAQ, horisontella teamkort, split CTA-layout, minimal nav, minimal footer.",
   cardRadius: "rounded-lg",
   cardBorder: true,
   cardShadow: "shadow-none",
@@ -156,6 +164,8 @@ const variant2: VariantStyle = {
   teamStyle: "horizontal",
   ctaLayout: "split",
   contactLayout: "two-column",
+  navStyle: "minimal",
+  footerStyle: "minimal",
 };
 
 /**
@@ -165,7 +175,7 @@ const variant2: VariantStyle = {
 const variant3: VariantStyle = {
   id: 3,
   name: "Bold & Filled",
-  description: "Djärv och fyllig. Inga borders, stora skuggor, extra stor border-radius, pill-knappar, horisontell process, masonry-galleri, minimal testimonials.",
+  description: "Djärv och fyllig. Inga borders, stora skuggor, extra stor border-radius, pill-knappar, horisontell process, masonry-galleri, minimal testimonials, flytande pill-nav, centrerad footer.",
   cardRadius: "rounded-3xl",
   cardBorder: false,
   cardShadow: "shadow-lg shadow-black/[0.06]",
@@ -187,6 +197,8 @@ const variant3: VariantStyle = {
   teamStyle: "minimal",
   ctaLayout: "minimal",
   contactLayout: "card",
+  navStyle: "floating",
+  footerStyle: "centered",
 };
 
 export const VARIANTS: Record<number, VariantStyle> = {
