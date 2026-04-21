@@ -1,4 +1,4 @@
-import type { SiteData, SiteMeta, SiteResponse } from "./types";
+import type { SiteData, SiteMeta, SiteResponse, BlogPost, BlogPostList, BlogCategory } from "./types";
 import { limitSectionArrays } from "./sanitize";
 
 /** Centralised API base URL — single source of truth for all fetch calls. */
@@ -54,6 +54,7 @@ export async function fetchSiteResponse(siteId: string): Promise<SiteResponse | 
       status: data.status,
       created_at: data.created_at,
       claim_token: data.claim_token,
+      installed_apps: data.installed_apps ?? [],
     };
   } catch {
     return null;
@@ -97,6 +98,61 @@ export async function resolveSiteByDomain(
     );
     if (!res.ok) return null;
     return (await res.json()) as { id: string };
+  } catch {
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Blog
+// ---------------------------------------------------------------------------
+
+export async function fetchBlogPosts(
+  siteId: string,
+  page: number = 1,
+  pageSize: number = 10,
+  category?: string,
+): Promise<BlogPostList | null> {
+  try {
+    const params = new URLSearchParams({ page: String(page), page_size: String(pageSize) });
+    if (category) params.set("category", category);
+    const res = await fetchWithTimeout(
+      `${API_URL}/api/sites/${siteId}/blog/posts?${params}`,
+      { next: { revalidate: 300 } },
+    );
+    if (!res.ok) return null;
+    return (await res.json()) as BlogPostList;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchBlogPost(
+  siteId: string,
+  slug: string,
+): Promise<BlogPost | null> {
+  try {
+    const res = await fetchWithTimeout(
+      `${API_URL}/api/sites/${siteId}/blog/posts/${encodeURIComponent(slug)}`,
+      { next: { revalidate: 300 } },
+    );
+    if (!res.ok) return null;
+    return (await res.json()) as BlogPost;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchBlogCategories(
+  siteId: string,
+): Promise<BlogCategory[] | null> {
+  try {
+    const res = await fetchWithTimeout(
+      `${API_URL}/api/sites/${siteId}/blog/categories`,
+      { next: { revalidate: 300 } },
+    );
+    if (!res.ok) return null;
+    return (await res.json()) as BlogCategory[];
   } catch {
     return null;
   }

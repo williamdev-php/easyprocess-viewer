@@ -13,5 +13,5 @@ export default async function PreviewPage({ params }: Props) {
   const data = await fetchSiteData(siteId);
   if (!data) notFound();
 
-  return <PreviewShell initialData={data} siteId={siteId} />;
+  return <PreviewShell key={siteId} initialData={data} siteId={siteId} />;
 }

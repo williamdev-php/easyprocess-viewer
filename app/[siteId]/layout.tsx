@@ -4,13 +4,14 @@ import { notFound } from "next/navigation";
 import { fetchSiteResponse, fetchSiteMeta } from "@/lib/api";
 import { resolveColors } from "@/lib/colors";
 import { getTheme } from "@/lib/themes";
-import { getVariantStyle } from "@/lib/style-variants";
+import { getVariantStyle, applyLayoutOverrides } from "@/lib/style-variants";
 import { buildNavigation } from "@/lib/navigation";
 import { Nav } from "@/components/nav";
 import { Footer } from "@/components/footer";
 import { Analytics } from "@/components/analytics";
 import { DraftBanner } from "@/components/draft-banner";
-import { sanitizeFontFamily } from "@/lib/sanitize";
+import Script from "next/script";
+import { sanitizeFontFamily, sanitizeHeadScripts } from "@/lib/sanitize";
 import { resolveVersion, getNavRenderer, getFooterRenderer } from "@/lib/version-registry";
 
 interface Props {
@@ -48,8 +49,12 @@ export default async function SiteLayout({ params, children }: Props) {
   const isDraft = siteResponse.status === "DRAFT";
   const colors = resolveColors(siteData ?? {});
   const theme = getTheme(siteData?.theme);
-  const variantStyle = getVariantStyle(siteData?.style_variant);
-  const navItems = buildNavigation(siteData, siteId);
+  const variantStyle = applyLayoutOverrides(
+    getVariantStyle(siteData?.style_variant),
+    siteData?.nav_style,
+    siteData?.footer_style,
+  );
+  const navItems = buildNavigation(siteData, siteId, siteResponse.installed_apps);
   const biz = siteData.business;
 
   const lang = siteData.meta?.language || "sv";
@@ -66,16 +71,57 @@ export default async function SiteLayout({ params, children }: Props) {
 
   const renderCtx = { data: siteData, colors, theme, variantStyle, lang, siteId };
 
+  // Build Google Font URLs for custom fonts
+  // Validate and sanitize user-added head scripts (defense-in-depth)
+  const headScripts = sanitizeHeadScripts(siteData.head_scripts);
+
+  const bodyFont = sanitizeFontFamily(siteData.branding?.fonts?.body);
+  const headingFont = sanitizeFontFamily(siteData.branding?.fonts?.heading);
+  const fontsToLoad = new Set<string>();
+  if (bodyFont && bodyFont !== "Inter") fontsToLoad.add(bodyFont);
+  if (headingFont && headingFont !== "Inter" && headingFont !== bodyFont) fontsToLoad.add(headingFont);
+
   return (
-    <div
-      className="min-h-screen"
-      style={{
-        fontFamily: sanitizeFontFamily(siteData.branding?.fonts?.body)
-          ? `${sanitizeFontFamily(siteData.branding?.fonts?.body)}, -apple-system, BlinkMacSystemFont, sans-serif`
-          : `Inter, -apple-system, BlinkMacSystemFont, sans-serif`,
-        background: colors.background,
-      }}
-    >
+    <>
+      {fontsToLoad.size > 0 && (
+        // eslint-disable-next-line @next/next/no-page-custom-font
+        <link
+          rel="stylesheet"
+          href={`https://fonts.googleapis.com/css2?${[...fontsToLoad].map(f => `family=${f.replace(/ /g, "+")}`).join("&")}&display=swap`}
+        />
+      )}
+      {/* User-added verification meta tags */}
+      {headScripts?.meta_tags?.map((meta, i) => (
+        <meta key={`hm-${i}`} name={meta.name} content={meta.content} />
+      ))}
+      {/* User-added analytics/tracking scripts */}
+      {headScripts?.scripts?.map((script, i) =>
+        script.src ? (
+          <Script
+            key={`hs-${i}`}
+            src={script.src}
+            strategy="afterInteractive"
+            {...(script.async_attr !== false ? { async: true } : {})}
+            {...(script.defer ? { defer: true } : {})}
+          />
+        ) : script.content ? (
+          <Script
+            key={`hs-${i}`}
+            id={`head-script-${siteId}-${i}`}
+            strategy="afterInteractive"
+            dangerouslySetInnerHTML={{ __html: script.content }}
+          />
+        ) : null,
+      )}
+      <div
+        className="min-h-screen"
+        style={{
+          fontFamily: bodyFont
+            ? `${bodyFont}, -apple-system, BlinkMacSystemFont, sans-serif`
+            : `Inter, -apple-system, BlinkMacSystemFont, sans-serif`,
+          background: colors.background,
+        }}
+      >
       {customNavRenderer
         ? customNavRenderer({ ...renderCtx, items: navItems, logoUrl: siteData.branding?.logo_url, businessName: biz?.name, ctaHref })
         : (
@@ -117,5 +163,6 @@ export default async function SiteLayout({ params, children }: Props) {
         )
       }
     </div>
+    </>
   );
 }

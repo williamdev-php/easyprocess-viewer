@@ -7,6 +7,7 @@ const translations = {
     "nav.gallery": "Galleri",
     "nav.faq": "FAQ",
     "nav.contact": "Kontakt",
+    "nav.blog": "Blogg",
     "nav.contactUs": "Kontakta oss",
     "nav.menu": "Meny",
 
@@ -69,6 +70,7 @@ const translations = {
     "nav.gallery": "Gallery",
     "nav.faq": "FAQ",
     "nav.contact": "Contact",
+    "nav.blog": "Blog",
     "nav.contactUs": "Contact us",
     "nav.menu": "Menu",
 

@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { resolveColors } from "@/lib/colors";
 import { getTheme } from "@/lib/themes";
-import { getVariantStyle } from "@/lib/style-variants";
+import { getVariantStyle, applyLayoutOverrides } from "@/lib/style-variants";
 import type { SiteData } from "@/lib/types";
 import dynamic from "next/dynamic";
 import { Hero } from "@/components/hero";
@@ -19,6 +19,11 @@ const FAQSection = dynamic(() => import("@/components/faq-section").then(m => ({
 const CTASection = dynamic(() => import("@/components/cta-section").then(m => ({ default: m.CTASection })));
 const GallerySection = dynamic(() => import("@/components/gallery-section").then(m => ({ default: m.GallerySection })));
 const ContactSection = dynamic(() => import("@/components/contact-section").then(m => ({ default: m.ContactSection })));
+const PricingSection = dynamic(() => import("@/components/pricing-section").then(m => ({ default: m.PricingSection })));
+const VideoSection = dynamic(() => import("@/components/video-section").then(m => ({ default: m.VideoSection })));
+const LogoCloudSection = dynamic(() => import("@/components/logo-cloud-section").then(m => ({ default: m.LogoCloudSection })));
+const CustomContentSection = dynamic(() => import("@/components/custom-content-section").then(m => ({ default: m.CustomContentSection })));
+const BannerSection = dynamic(() => import("@/components/banner-section").then(m => ({ default: m.BannerSection })));
 import { ErrorBoundary } from "@/components/error-boundary";
 import { t } from "@/lib/i18n";
 import { resolveVersion, getVersionRenderer } from "@/lib/version-registry";
@@ -95,15 +100,32 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
 
   const colors = resolveColors(data);
   const theme = getTheme(data.theme);
-  const variantStyle = getVariantStyle(data.style_variant);
+  const variantStyle = applyLayoutOverrides(
+    getVariantStyle(data.style_variant),
+    data.nav_style,
+    data.footer_style,
+  );
 
   const lang = data.meta?.language || "sv";
 
   const DEFAULT_ORDER = [
     "hero", "about", "features", "stats", "services", "process",
     "gallery", "team", "testimonials", "faq", "cta", "contact",
+    "pricing", "video", "logo_cloud", "custom_content", "banner",
   ];
-  const sectionOrder = data.section_order ?? DEFAULT_ORDER;
+  const sectionOrder = (() => {
+    const order = data.section_order;
+    if (!order || !Array.isArray(order) || order.length === 0) return DEFAULT_ORDER;
+    const result = [...order];
+    for (const k of DEFAULT_ORDER) {
+      if (!result.includes(k)) result.push(k);
+    }
+    return result;
+  })();
+
+  // Helper to get animation for a section from section_settings
+  const getAnim = (key: string) =>
+    (data.section_settings?.[key]?.animation as import("@/components/animate").AnimationType) || "fade-up";
 
   // Check if this site uses a non-v1 version with a dedicated renderer
   const version = resolveVersion(data);
@@ -305,6 +327,76 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
                 lang={lang}
                 siteId={siteId}
                 variantStyle={variantStyle}
+              />
+            </EditableSection>
+          </ErrorBoundary>
+        ) : null;
+      case "pricing":
+        return data.pricing ? (
+          <ErrorBoundary sectionName="pricing" key="pricing">
+            <EditableSection section="pricing" isEditing={isEditing}>
+              <PricingSection
+                {...data.pricing}
+                colors={colors}
+                theme={theme}
+                variantStyle={variantStyle}
+                animation={getAnim("pricing")}
+              />
+            </EditableSection>
+          </ErrorBoundary>
+        ) : null;
+      case "video":
+        return data.video ? (
+          <ErrorBoundary sectionName="video" key="video">
+            <EditableSection section="video" isEditing={isEditing}>
+              <VideoSection
+                {...data.video}
+                colors={colors}
+                theme={theme}
+                variantStyle={variantStyle}
+                animation={getAnim("video")}
+              />
+            </EditableSection>
+          </ErrorBoundary>
+        ) : null;
+      case "logo_cloud":
+        return data.logo_cloud ? (
+          <ErrorBoundary sectionName="logo_cloud" key="logo_cloud">
+            <EditableSection section="logo_cloud" isEditing={isEditing}>
+              <LogoCloudSection
+                {...data.logo_cloud}
+                colors={colors}
+                theme={theme}
+                variantStyle={variantStyle}
+                animation={getAnim("logo_cloud")}
+              />
+            </EditableSection>
+          </ErrorBoundary>
+        ) : null;
+      case "custom_content":
+        return data.custom_content ? (
+          <ErrorBoundary sectionName="custom_content" key="custom_content">
+            <EditableSection section="custom_content" isEditing={isEditing}>
+              <CustomContentSection
+                {...data.custom_content}
+                colors={colors}
+                theme={theme}
+                variantStyle={variantStyle}
+                animation={getAnim("custom_content")}
+              />
+            </EditableSection>
+          </ErrorBoundary>
+        ) : null;
+      case "banner":
+        return data.banner ? (
+          <ErrorBoundary sectionName="banner" key="banner">
+            <EditableSection section="banner" isEditing={isEditing}>
+              <BannerSection
+                {...data.banner}
+                colors={colors}
+                theme={theme}
+                variantStyle={variantStyle}
+                animation={getAnim("banner")}
               />
             </EditableSection>
           </ErrorBoundary>

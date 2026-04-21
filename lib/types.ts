@@ -62,6 +62,51 @@ export interface ProcessStep {
   step_number?: number;
 }
 
+export interface PricingTier {
+  name: string;
+  price: string;
+  description?: string;
+  features?: string[];
+  highlighted?: boolean;
+  cta?: CTAButton | null;
+}
+
+export interface LogoItem {
+  name: string;
+  image_url?: string;
+}
+
+export interface ContentBlock {
+  type: string; // "text" | "image" | "button" | "heading"
+  content?: string;
+  url?: string;
+  alt?: string;
+  label?: string;
+  href?: string;
+}
+
+export interface SectionSettings {
+  animation?: string; // "fade-up" | "fade-in" | "slide-left" | "slide-right" | "scale" | "none"
+  background_color?: string;
+}
+
+export interface HeadScript {
+  src?: string | null;
+  content?: string | null;
+  async_attr?: boolean;
+  defer?: boolean;
+}
+
+export interface HeadMeta {
+  name: string;
+  content: string;
+}
+
+export interface HeadScripts {
+  scripts?: HeadScript[];
+  meta_tags?: HeadMeta[];
+}
+
 export interface SiteData {
   meta?: {
     title?: string;
@@ -73,6 +118,14 @@ export interface SiteData {
   section_order?: string[];
   theme?: string;
   style_variant?: number;
+  /** Layout override — pick nav style independently of style_variant. "" = use variant default. */
+  nav_style?: string;
+  /** Layout override — pick footer style independently of style_variant. "" = use variant default. */
+  footer_style?: string;
+  /** Custom header navigation — when set, used instead of auto-generated nav. */
+  header_nav?: NavItem[] | null;
+  /** Custom footer navigation — when set, used instead of auto-generated nav. */
+  footer_nav?: NavItem[] | null;
   /** Viewer version — locks this site to a specific component set. Defaults to "v1". */
   viewer_version?: string;
   branding?: {
@@ -155,10 +208,39 @@ export interface SiteData {
     show_form?: boolean;
     show_info?: boolean;
   } | null;
+  pricing?: {
+    title?: string;
+    subtitle?: string;
+    tiers?: PricingTier[];
+  } | null;
+  video?: {
+    title?: string;
+    subtitle?: string;
+    video_url?: string;
+    caption?: string;
+  } | null;
+  logo_cloud?: {
+    title?: string;
+    subtitle?: string;
+    logos?: LogoItem[];
+  } | null;
+  custom_content?: {
+    title?: string;
+    subtitle?: string;
+    layout?: string;
+    blocks?: ContentBlock[];
+  } | null;
+  banner?: {
+    text?: string;
+    button?: CTAButton | null;
+    background_color?: string;
+  } | null;
+  section_settings?: Record<string, SectionSettings>;
   seo?: {
     structured_data?: Record<string, unknown>;
     robots?: string;
   };
+  head_scripts?: HeadScripts | null;
 }
 
 export interface NavItem {
@@ -172,6 +254,40 @@ export interface SiteResponse {
   status?: string;
   created_at?: string;
   claim_token?: string | null;
+  installed_apps?: string[];
+}
+
+// ---------------------------------------------------------------------------
+// Blog types
+// ---------------------------------------------------------------------------
+
+export interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  content?: string;
+  featured_image: string | null;
+  author_name: string | null;
+  category_name: string | null;
+  category_slug: string | null;
+  published_at: string | null;
+  created_at?: string | null;
+}
+
+export interface BlogPostList {
+  items: BlogPost[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
+export interface BlogCategory {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  post_count: number;
 }
 
 export interface SiteMeta {
@@ -185,4 +301,5 @@ export interface SiteMeta {
   business_name: string;
   structured_data: Record<string, unknown>;
   robots: string;
+  head_scripts?: HeadScripts | null;
 }

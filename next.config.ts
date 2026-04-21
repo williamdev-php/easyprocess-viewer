@@ -1,9 +1,12 @@
 import type { NextConfig } from "next";
 
+const editorOrigin = process.env.NEXT_PUBLIC_EDITOR_ORIGIN || process.env.FRONTEND_URL || "http://localhost:3000";
+
 const nextConfig: NextConfig = {
   // Allow images from any HTTPS domain (generated sites have images from various sources).
   // HTTP is only permitted in development for local testing.
   images: {
+    qualities: [75, 80],
     remotePatterns: [
       { protocol: "https", hostname: "**" },
       ...(process.env.NODE_ENV !== "production"
@@ -21,6 +24,7 @@ const nextConfig: NextConfig = {
     };
   },
   async headers() {
+    const frameAncestors = `frame-ancestors 'self' https://qvicko.se https://*.qvicko.se https://qvicko.com https://*.qvicko.com ${editorOrigin}`;
     return [
       {
         // Favicon and public assets — cache for 1 day
@@ -33,12 +37,40 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // Allow embedding in iframes from the main app (dashboard editor)
+        // Preview pages (loaded in editor iframe) — permissive CSP
+        source: "/preview/:path*",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "font-src 'self' https://fonts.gstatic.com data:",
+              "img-src 'self' https: data: blob:",
+              "connect-src 'self' https: http://localhost:*",
+              frameAncestors,
+            ].join("; "),
+          },
+        ],
+      },
+      {
+        // All other pages — allow Google Fonts + iframe embedding from editor
         source: "/(.*)",
         headers: [
           {
             key: "Content-Security-Policy",
-            value: "frame-ancestors 'self' https://qvicko.se https://*.qvicko.se https://qvicko.com https://*.qvicko.com " + (process.env.FRONTEND_URL || "http://localhost:3000"),
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "font-src 'self' https://fonts.gstatic.com data:",
+              "img-src 'self' https: data: blob:",
+              "connect-src 'self' https: http://localhost:*",
+              frameAncestors,
+            ].join("; "),
           },
         ],
       },

@@ -1,3 +1,5 @@
+import type { HeadScripts, HeadScript, HeadMeta } from "./types";
+
 /** Maximum number of items allowed per section array to prevent DoS. */
 const MAX_SECTION_ITEMS = 50;
 
@@ -16,6 +18,9 @@ export function limitSectionArrays(data: Record<string, unknown>): void {
     ["team", "members"],
     ["process", "steps"],
     ["about", "highlights"],
+    ["pricing", "tiers"],
+    ["logo_cloud", "logos"],
+    ["custom_content", "blocks"],
   ];
   for (const [section, field] of arrayFields) {
     const sec = data[section];
@@ -97,4 +102,106 @@ export function sanitizeImageUrl(url: string | undefined | null): string | undef
     return url;
   }
   return undefined;
+}
+
+// ---------------------------------------------------------------------------
+// Head scripts — viewer-side defense-in-depth validation
+// ---------------------------------------------------------------------------
+
+const ALLOWED_SCRIPT_HOSTS = new Set([
+  "www.googletagmanager.com",
+  "googletagmanager.com",
+  "www.google-analytics.com",
+  "www.google.com",
+  "pagead2.googlesyndication.com",
+  "connect.facebook.net",
+  "www.facebook.com",
+  "bat.bing.com",
+  "clarity.ms",
+  "www.clarity.ms",
+  "snap.licdn.com",
+  "platform.linkedin.com",
+  "static.ads-twitter.com",
+  "platform.twitter.com",
+  "analytics.tiktok.com",
+  "s.pinimg.com",
+  "sc-static.net",
+  "js.hs-scripts.com",
+  "js.hs-analytics.net",
+  "js.hsforms.net",
+  "static.hotjar.com",
+  "plausible.io",
+  "cdn.matomo.cloud",
+  "client.crisp.chat",
+  "widget.intercom.io",
+  "cdn.cookielaw.org",
+  "cookiecdn.com",
+]);
+
+const DANGEROUS_PATTERNS = [
+  /document\.cookie/i,
+  /document\.write/i,
+  /\.innerHTML\s*=/i,
+  /\.outerHTML\s*=/i,
+  /eval\s*\(/i,
+  /(?<![a-zA-Z])Function\s*\(/,  // capital-F Function constructor only
+  /setTimeout\s*\(\s*['"]/i,
+  /setInterval\s*\(\s*['"]/i,
+  /fetch\s*\(/i,
+  /XMLHttpRequest/i,
+  /window\.location\s*=/i,
+  /window\.open\s*\(/i,
+  /<\s*iframe/i,
+  /import\s*\(/i,
+  /require\s*\(/i,
+  /localStorage|sessionStorage/i,
+  /indexedDB/i,
+  /WebSocket\s*\(/i,
+];
+
+function isAllowedScriptSrc(src: string): boolean {
+  try {
+    const url = new URL(src);
+    return url.protocol === "https:" && ALLOWED_SCRIPT_HOSTS.has(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
+function isSafeInlineScript(content: string): boolean {
+  return !DANGEROUS_PATTERNS.some((p) => p.test(content));
+}
+
+function isValidMetaTag(meta: HeadMeta): boolean {
+  if (!meta.name || !meta.content) return false;
+  if (!/^[a-zA-Z0-9_\-:.]+$/.test(meta.name)) return false;
+  if (meta.name.length > 200 || meta.content.length > 500) return false;
+  if (/[<>]/.test(meta.content)) return false;
+  return true;
+}
+
+/**
+ * Sanitize head_scripts on the viewer side (defense-in-depth).
+ * Returns only scripts/meta_tags that pass validation.
+ */
+export function sanitizeHeadScripts(
+  headScripts: HeadScripts | null | undefined,
+): HeadScripts | null {
+  if (!headScripts) return null;
+
+  const safeScripts: HeadScript[] = (headScripts.scripts ?? [])
+    .slice(0, 10)
+    .filter((s) => {
+      if (s.src) return isAllowedScriptSrc(s.src);
+      if (s.content) return s.content.length <= 5000 && isSafeInlineScript(s.content);
+      return false;
+    });
+
+  const safeMeta: HeadMeta[] = (headScripts.meta_tags ?? [])
+    .slice(0, 10)
+    .filter(isValidMetaTag);
+
+  if (safeScripts.length === 0 && safeMeta.length === 0) return null;
+
+  return { scripts: safeScripts, meta_tags: safeMeta };
 }

@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { resolveColors } from "@/lib/colors";
 import { getTheme } from "@/lib/themes";
-import { getVariantStyle } from "@/lib/style-variants";
+import { getVariantStyle, applyLayoutOverrides } from "@/lib/style-variants";
 import type { SiteData } from "@/lib/types";
 
 import { Hero } from "@/components/hero";
@@ -18,8 +18,16 @@ import { FAQSection } from "@/components/faq-section";
 import { CTASection } from "@/components/cta-section";
 import { GallerySection } from "@/components/gallery-section";
 import { ContactSection } from "@/components/contact-section";
+import { PricingSection } from "@/components/pricing-section";
+import { VideoSection } from "@/components/video-section";
+import { LogoCloudSection } from "@/components/logo-cloud-section";
+import { CustomContentSection } from "@/components/custom-content-section";
+import { BannerSection } from "@/components/banner-section";
+import { Nav } from "@/components/nav";
+import { Footer } from "@/components/footer";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { sanitizeFontFamily } from "@/lib/sanitize";
+import { buildNavigation } from "@/lib/navigation";
 import { resolveVersion, getVersionRenderer } from "@/lib/version-registry";
 import type { RenderContext } from "@/lib/version-registry";
 
@@ -31,6 +39,7 @@ interface Props {
 const DEFAULT_ORDER = [
   "hero", "about", "features", "stats", "services", "process",
   "gallery", "team", "testimonials", "faq", "cta", "contact",
+  "pricing", "video", "logo_cloud", "custom_content", "banner",
 ];
 
 export function PreviewShell({ initialData, siteId }: Props) {
@@ -78,58 +87,105 @@ export function PreviewShell({ initialData, siteId }: Props) {
   }, []);
 
   // ------------------------------------------------------------------
+  // Load Google Fonts dynamically when font changes
+  // ------------------------------------------------------------------
+  useEffect(() => {
+    const bodyFont = data.branding?.fonts?.body;
+    const headingFont = data.branding?.fonts?.heading;
+    const fontsToLoad = new Set<string>();
+    if (bodyFont && bodyFont !== "Inter") fontsToLoad.add(bodyFont);
+    if (headingFont && headingFont !== "Inter" && headingFont !== bodyFont) fontsToLoad.add(headingFont);
+
+    for (const fontName of fontsToLoad) {
+      const safeFont = fontName.replace(/ /g, "+");
+      const id = `gfont-${safeFont}`;
+      if (document.getElementById(id)) continue;
+      const link = document.createElement("link");
+      link.id = id;
+      link.rel = "stylesheet";
+      link.href = `https://fonts.googleapis.com/css2?family=${safeFont}&display=swap`;
+      document.head.appendChild(link);
+    }
+  }, [data.branding?.fonts?.body, data.branding?.fonts?.heading]);
+
+  // ------------------------------------------------------------------
   // Render
   // ------------------------------------------------------------------
   const colors = resolveColors(data);
   const theme = getTheme(data.theme);
-  const variantStyle = getVariantStyle(data.style_variant);
+  const variantStyle = applyLayoutOverrides(
+    getVariantStyle(data.style_variant),
+    data.nav_style,
+    data.footer_style,
+  );
   const lang = data.meta?.language || "sv";
-  const sectionOrder = data.section_order ?? DEFAULT_ORDER;
+  const sectionOrder = (() => {
+    const order = data.section_order;
+    if (!order || !Array.isArray(order) || order.length === 0) return DEFAULT_ORDER;
+    const result = [...order];
+    for (const k of DEFAULT_ORDER) {
+      if (!result.includes(k)) result.push(k);
+    }
+    return result;
+  })();
+  const biz = data.business;
+  const navItems = buildNavigation(data, siteId);
+  const ctaHref = (biz?.email || biz?.phone || data.contact) ? `/${siteId}/contact` : undefined;
+
+  const getAnim = (key: string) =>
+    (data.section_settings?.[key]?.animation as import("@/components/animate").AnimationType) || "fade-up";
 
   // Check if this site uses a non-v1 version with a dedicated renderer
   const version = resolveVersion(data);
   const versionRenderer = getVersionRenderer(version);
 
+  // Shared font style for both renderers
+  // Use backgroundColor (not background shorthand) to avoid hydration mismatch —
+  // browsers expand the shorthand into multiple properties which React can't match.
+  const fontStyle = {
+    fontFamily: sanitizeFontFamily(data.branding?.fonts?.body)
+      ? `${sanitizeFontFamily(data.branding?.fonts?.body)}, -apple-system, BlinkMacSystemFont, sans-serif`
+      : `Inter, -apple-system, BlinkMacSystemFont, sans-serif`,
+    backgroundColor: colors.background,
+    minHeight: "100vh",
+  };
+
   if (versionRenderer) {
     // Future versions (v2+) use their own renderer from the version registry
     const ctx: RenderContext = { data, colors, theme, variantStyle, lang, siteId };
     return (
-      <div
-        style={{
-          fontFamily: sanitizeFontFamily(data.branding?.fonts?.body)
-            ? `${sanitizeFontFamily(data.branding?.fonts?.body)}, -apple-system, BlinkMacSystemFont, sans-serif`
-            : `Inter, -apple-system, BlinkMacSystemFont, sans-serif`,
-          background: colors.background,
-          minHeight: "100vh",
-        }}
-      >
-        {sectionOrder.map((key) => {
-          const node = versionRenderer(key, ctx);
-          if (!node) return null;
-          return (
-            <ErrorBoundary sectionName={key} key={key}>
-              <div
-                onClick={(e) => {
-                  if ((e.target as HTMLElement).closest("a")) return;
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleSectionClick(key);
-                }}
-                className="relative cursor-pointer transition-all duration-150 hover:outline hover:outline-2 hover:outline-blue-400/60 hover:outline-offset-[-2px]"
-              >
-                <div className="pointer-events-none absolute top-2 right-2 z-50 rounded bg-blue-500 px-2 py-0.5 text-[10px] font-medium text-white opacity-0 transition-opacity [div:hover>&]:opacity-100 shadow-sm">
-                  Redigera
+      <div style={fontStyle}>
+        <Nav items={navItems} colors={colors} theme={theme} logoUrl={data.branding?.logo_url} businessName={biz?.name} ctaHref={ctaHref} lang={lang} variantStyle={variantStyle} />
+        <main>
+          {sectionOrder.map((key) => {
+            const node = versionRenderer(key, ctx);
+            if (!node) return null;
+            return (
+              <ErrorBoundary sectionName={key} key={key}>
+                <div
+                  onClick={(e) => {
+                    if ((e.target as HTMLElement).closest("a")) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleSectionClick(key);
+                  }}
+                  className="relative cursor-pointer transition-all duration-150 hover:outline hover:outline-2 hover:outline-blue-400/60 hover:outline-offset-[-2px]"
+                >
+                  <div className="pointer-events-none absolute top-2 right-2 z-50 rounded bg-blue-500 px-2 py-0.5 text-[10px] font-medium text-white opacity-0 transition-opacity [div:hover>&]:opacity-100 shadow-sm">
+                    Redigera
+                  </div>
+                  {node}
                 </div>
-                {node}
-              </div>
-            </ErrorBoundary>
-          );
-        })}
+              </ErrorBoundary>
+            );
+          })}
+        </main>
+        <Footer businessName={biz?.name} email={biz?.email} phone={biz?.phone} address={biz?.address} socialLinks={biz?.social_links} navItems={navItems} colors={colors} theme={theme} lang={lang} variantStyle={variantStyle} />
       </div>
     );
   }
 
-  // v1 renderer — the original inline rendering (frozen after production launch)
+  // v1 renderer — the original inline rendering
   const renderSection = (key: string) => {
     const sectionData = (data as Record<string, any>)[key];
     if (!sectionData) return null;
@@ -222,22 +278,36 @@ export function PreviewShell({ initialData, siteId }: Props) {
             variantStyle={variantStyle}
           />
         );
+      case "pricing":
+        return wrap(
+          <PricingSection {...data.pricing!} colors={colors} theme={theme} variantStyle={variantStyle} animation={getAnim("pricing")} />
+        );
+      case "video":
+        return wrap(
+          <VideoSection {...data.video!} colors={colors} theme={theme} variantStyle={variantStyle} animation={getAnim("video")} />
+        );
+      case "logo_cloud":
+        return wrap(
+          <LogoCloudSection {...data.logo_cloud!} colors={colors} theme={theme} variantStyle={variantStyle} animation={getAnim("logo_cloud")} />
+        );
+      case "custom_content":
+        return wrap(
+          <CustomContentSection {...data.custom_content!} colors={colors} theme={theme} variantStyle={variantStyle} animation={getAnim("custom_content")} />
+        );
+      case "banner":
+        return wrap(
+          <BannerSection {...data.banner!} colors={colors} theme={theme} variantStyle={variantStyle} animation={getAnim("banner")} />
+        );
       default:
         return null;
     }
   };
 
   return (
-    <div
-      style={{
-        fontFamily: sanitizeFontFamily(data.branding?.fonts?.body)
-          ? `${sanitizeFontFamily(data.branding?.fonts?.body)}, -apple-system, BlinkMacSystemFont, sans-serif`
-          : `Inter, -apple-system, BlinkMacSystemFont, sans-serif`,
-        background: colors.background,
-        minHeight: "100vh",
-      }}
-    >
-      {sectionOrder.map(renderSection)}
+    <div style={fontStyle}>
+      <Nav items={navItems} colors={colors} theme={theme} logoUrl={data.branding?.logo_url} businessName={biz?.name} ctaHref={ctaHref} lang={lang} variantStyle={variantStyle} />
+      <main>{sectionOrder.map(renderSection)}</main>
+      <Footer businessName={biz?.name} email={biz?.email} phone={biz?.phone} address={biz?.address} socialLinks={biz?.social_links} navItems={navItems} colors={colors} theme={theme} lang={lang} variantStyle={variantStyle} />
     </div>
   );
 }

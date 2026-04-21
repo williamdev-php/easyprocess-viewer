@@ -39,7 +39,7 @@ function useNavColors(colors: Colors) {
   const borderScrolled = useMemo(() => mixColor(colors.text, colors.background, 0.92), [colors.text, colors.background]);
   const borderDefault = useMemo(() => mixColor(colors.text, colors.background, 0.88), [colors.text, colors.background]);
   const navTextColor = useMemo(() => mixColor(colors.text, colors.background, 0.3), [colors.text, colors.background]);
-  const mobileBg = useMemo(() => mixColor(colors.background, colors.text, 0.97), [colors.background, colors.text]);
+  const mobileBg = useMemo(() => mixColor(colors.background, colors.text, 0.03), [colors.background, colors.text]);
   const mobileBorder = useMemo(() => mixColor(colors.text, colors.background, 0.92), [colors.text, colors.background]);
   return { borderScrolled, borderDefault, navTextColor, mobileBg, mobileBorder };
 }

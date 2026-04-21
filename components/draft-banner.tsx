@@ -1,7 +1,3 @@
-"use client";
-
-import { useMemo } from "react";
-
 const DRAFT_LIFETIME_DAYS = 45;
 const FRONTEND_URL = process.env.NEXT_PUBLIC_FRONTEND_URL ?? "https://qvicko.com";
 
@@ -28,14 +24,12 @@ interface DraftBannerProps {
 export function DraftBanner({ createdAt, lang }: DraftBannerProps) {
   const t = translations[lang === "en" ? "en" : "sv"];
 
-  const daysRemaining = useMemo(() => {
-    if (!createdAt) return DRAFT_LIFETIME_DAYS;
+  let daysRemaining = DRAFT_LIFETIME_DAYS;
+  if (createdAt) {
     const created = new Date(createdAt);
     const expires = new Date(created.getTime() + DRAFT_LIFETIME_DAYS * 24 * 60 * 60 * 1000);
-    const now = new Date();
-    const diff = Math.max(0, Math.ceil((expires.getTime() - now.getTime()) / (24 * 60 * 60 * 1000)));
-    return diff;
-  }, [createdAt]);
+    daysRemaining = Math.max(0, Math.ceil((expires.getTime() - Date.now()) / (24 * 60 * 60 * 1000)));
+  }
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50">

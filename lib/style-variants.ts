@@ -219,3 +219,26 @@ export function getVariantStyle(variant?: number): VariantStyle {
   if (variant === undefined || variant === null || !(variant in VARIANTS)) return variant0;
   return VARIANTS[variant];
 }
+
+/** Valid values for nav_style / footer_style overrides */
+const VALID_NAV_STYLES = new Set<VariantStyle["navStyle"]>(["floating", "sticky", "minimal"]);
+const VALID_FOOTER_STYLES = new Set<VariantStyle["footerStyle"]>(["columns", "centered", "minimal"]);
+
+/**
+ * Apply user-chosen nav/footer style overrides on top of the base variant.
+ * Empty string or invalid value = keep the variant default.
+ */
+export function applyLayoutOverrides(
+  base: VariantStyle,
+  navStyle?: string,
+  footerStyle?: string,
+): VariantStyle {
+  const nav = navStyle && VALID_NAV_STYLES.has(navStyle as VariantStyle["navStyle"])
+    ? (navStyle as VariantStyle["navStyle"])
+    : base.navStyle;
+  const footer = footerStyle && VALID_FOOTER_STYLES.has(footerStyle as VariantStyle["footerStyle"])
+    ? (footerStyle as VariantStyle["footerStyle"])
+    : base.footerStyle;
+  if (nav === base.navStyle && footer === base.footerStyle) return base;
+  return { ...base, navStyle: nav, footerStyle: footer };
+}

@@ -1,0 +1,83 @@
+"use client";
+
+import { Animate } from "@/components/animate";
+import type { AnimationType } from "@/components/animate";
+import { SectionWrap } from "@/components/section-wrap";
+import { mixColor } from "@/lib/colors";
+import type { Colors } from "@/lib/types";
+import type { Theme } from "@/lib/themes";
+import type { VariantStyle } from "@/lib/style-variants";
+
+interface LogoItem {
+  name: string;
+  image_url?: string;
+}
+
+interface Props {
+  title?: string;
+  subtitle?: string;
+  logos?: LogoItem[];
+  colors: Colors;
+  theme: Theme;
+  variantStyle: VariantStyle;
+  animation?: AnimationType;
+}
+
+export function LogoCloudSection({
+  title = "Våra partners",
+  subtitle,
+  logos = [],
+  colors,
+  theme,
+  variantStyle,
+  animation = "fade-up",
+}: Props) {
+  if (!logos.length) return null;
+
+  const bg = colors.background;
+  const text = colors.text;
+
+  return (
+    <SectionWrap id="logo-cloud" theme={theme}>
+      <div className="mx-auto max-w-5xl px-4 sm:px-6">
+        {title && (
+          <Animate animation={animation}>
+            <div className={`mb-10 ${variantStyle.headerAlign === "left" ? "text-left" : "text-center"}`}>
+              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl" style={{ color: text }}>
+                {title}
+              </h2>
+              {subtitle && (
+                <p className="mt-2 text-base" style={{ color: mixColor(text, bg, 0.4) }}>
+                  {subtitle}
+                </p>
+              )}
+            </div>
+          </Animate>
+        )}
+        <Animate animation={animation} delay={60}>
+          <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-12">
+            {logos.map((logo, i) => (
+              <div key={i} className="flex flex-col items-center gap-2">
+                {logo.image_url ? (
+                  <img
+                    src={logo.image_url}
+                    alt={logo.name}
+                    className="h-10 w-auto object-contain opacity-70 grayscale transition hover:opacity-100 hover:grayscale-0 sm:h-12"
+                    loading="lazy"
+                  />
+                ) : (
+                  <span
+                    className="text-sm font-medium"
+                    style={{ color: mixColor(text, bg, 0.45) }}
+                  >
+                    {logo.name}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </Animate>
+      </div>
+    </SectionWrap>
+  );
+}
