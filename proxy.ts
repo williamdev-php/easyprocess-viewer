@@ -120,9 +120,9 @@ export async function proxy(request: NextRequest) {
     }
 
     // If accessing via subdomain and a custom domain is active, redirect
-    if (subdomain && data.redirect_to) {
+    if (subdomain && data && data.redirect_to) {
       try {
-        const redirectUrl = new URL(data.redirect_to);
+        const redirectUrl = new URL(data.redirect_to as string);
         // Only allow HTTPS redirects to prevent open redirect
         if (redirectUrl.protocol !== "https:") {
           return NextResponse.next();
@@ -137,9 +137,9 @@ export async function proxy(request: NextRequest) {
     }
 
     // Rewrite to /[siteId]/... so the app routes handle rendering
-    if (data.id) {
+    if (data && data.id) {
       const url = request.nextUrl.clone();
-      url.pathname = `/${data.id}${pathname === "/" ? "" : pathname}`;
+      url.pathname = `/${data.id as string}${pathname === "/" ? "" : pathname}`;
       return NextResponse.rewrite(url);
     }
   } catch {
