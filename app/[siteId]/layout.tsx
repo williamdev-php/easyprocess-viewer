@@ -10,6 +10,7 @@ import { Nav } from "@/components/nav";
 import { Footer } from "@/components/footer";
 import { Analytics } from "@/components/analytics";
 import { DraftBanner } from "@/components/draft-banner";
+import { ChatWidget } from "@/components/chat-widget";
 import Script from "next/script";
 import { sanitizeFontFamily, sanitizeHeadScripts } from "@/lib/sanitize";
 import { resolveVersion, getNavRenderer, getFooterRenderer } from "@/lib/version-registry";
@@ -114,7 +115,7 @@ export default async function SiteLayout({ params, children }: Props) {
         ) : null,
       )}
       <div
-        className="min-h-screen"
+        className="flex min-h-screen flex-col"
         style={{
           fontFamily: bodyFont
             ? `${bodyFont}, -apple-system, BlinkMacSystemFont, sans-serif`
@@ -138,7 +139,7 @@ export default async function SiteLayout({ params, children }: Props) {
         )
       }
       <Analytics siteId={siteId} />
-      <main>{children}</main>
+      <main className="flex-1">{children}</main>
       {isDraft && (
         <DraftBanner
           createdAt={siteResponse.created_at ?? undefined}
@@ -162,6 +163,13 @@ export default async function SiteLayout({ params, children }: Props) {
           />
         )
       }
+      {siteResponse.installed_apps?.includes("chat") && (
+        <ChatWidget
+          siteId={siteId}
+          lang={lang}
+          accentColor={colors.primary}
+        />
+      )}
     </div>
     </>
   );

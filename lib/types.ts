@@ -85,6 +85,13 @@ export interface ContentBlock {
   href?: string;
 }
 
+export interface OpeningHoursDay {
+  day: string; // "Monday" | "Tuesday" | ... | "Sunday"
+  open?: string; // "09:00"
+  close?: string; // "17:00"
+  closed?: boolean;
+}
+
 export interface SectionSettings {
   animation?: string; // "fade-up" | "fade-in" | "slide-left" | "slide-right" | "scale" | "none"
   background_color?: string;
@@ -141,6 +148,8 @@ export interface SiteData {
     address?: string | null;
     org_number?: string | null;
     social_links?: Record<string, string>;
+    opening_hours_enabled?: boolean;
+    opening_hours?: OpeningHoursDay[];
   };
   hero?: {
     headline: string;

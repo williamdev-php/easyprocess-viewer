@@ -40,7 +40,7 @@ export default async function BlogListingPage({ params, searchParams }: Props) {
   const totalPages = Math.ceil(postsData.total / postsData.page_size);
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
+    <main className="mx-auto max-w-5xl px-4 pb-12 pt-28 sm:px-6 sm:pt-32 lg:px-8">
       <h1 className="mb-8 text-3xl font-bold">{t("nav.blog", lang)}</h1>
 
       {/* Category filter */}

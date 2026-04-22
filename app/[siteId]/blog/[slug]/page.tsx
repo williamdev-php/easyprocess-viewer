@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import DOMPurify from "isomorphic-dompurify";
 import { fetchBlogPost, fetchSiteMeta } from "@/lib/api";
 import { t } from "@/lib/i18n";
 
@@ -45,7 +46,7 @@ export default async function BlogPostPage({ params }: Props) {
   const base = isProduction ? "" : `/${siteId}`;
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+    <main className="mx-auto max-w-3xl px-4 pb-12 pt-28 sm:px-6 sm:pt-32 lg:px-8">
       {/* Back link */}
       <Link
         href={`${base}/blog`}
@@ -100,8 +101,8 @@ export default async function BlogPostPage({ params }: Props) {
 
         {/* Content */}
         <div
-          className="prose prose-lg mt-8 max-w-none prose-headings:font-bold prose-a:text-blue-600 prose-img:rounded-xl"
-          dangerouslySetInnerHTML={{ __html: renderContent(post.content || "") }}
+          className="prose prose-lg mt-8 max-w-none prose-headings:font-bold prose-a:text-blue-600 prose-a:underline prose-img:rounded-2xl prose-img:mx-auto prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-blockquote:italic prose-code:rounded prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:rounded-lg prose-ul:list-disc prose-ol:list-decimal prose-li:my-1 prose-hr:my-8"
+          dangerouslySetInnerHTML={{ __html: sanitizeContent(post.content || "") }}
         />
       </article>
     </main>
@@ -109,18 +110,39 @@ export default async function BlogPostPage({ params }: Props) {
 }
 
 /**
- * Simple content renderer — supports basic HTML content.
- * For Markdown support, integrate a markdown renderer on the server.
- * For now, if content looks like plain text (no HTML tags), wrap in paragraphs.
+ * Sanitize blog HTML content for safe rendering.
+ * Backend sanitizes on save; this is defense-in-depth for the viewer.
  */
-function renderContent(content: string): string {
-  // If content already contains HTML tags, return as-is
-  if (/<[a-z][\s\S]*>/i.test(content)) {
-    return content;
+function sanitizeContent(content: string): string {
+  if (!content) return "";
+
+  // If content has no HTML tags (legacy plain text), convert to paragraphs
+  if (!/<[a-z][\s\S]*>/i.test(content)) {
+    content = content
+      .split(/\n\n+/)
+      .map((p) => `<p>${p.replace(/\n/g, "<br/>")}</p>`)
+      .join("");
   }
-  // Otherwise, convert line breaks to paragraphs
-  return content
-    .split(/\n\n+/)
-    .map((p) => `<p>${p.replace(/\n/g, "<br/>")}</p>`)
-    .join("");
+
+  return DOMPurify.sanitize(content, {
+    ALLOWED_TAGS: [
+      "p", "br", "hr",
+      "h1", "h2", "h3", "h4", "h5", "h6",
+      "strong", "b", "em", "i", "u", "s", "del",
+      "ul", "ol", "li",
+      "a", "img",
+      "blockquote", "pre", "code",
+      "figure", "figcaption",
+      "table", "thead", "tbody", "tr", "th", "td",
+      "div", "span",
+    ],
+    ALLOWED_ATTR: [
+      "href", "target", "rel", "title",
+      "src", "alt", "width", "height",
+      "class", "style",
+      "colspan", "rowspan",
+    ],
+    ALLOW_DATA_ATTR: false,
+    ADD_ATTR: ["target"],
+  });
 }

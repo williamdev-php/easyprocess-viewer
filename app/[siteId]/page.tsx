@@ -14,7 +14,7 @@ export default async function HomePage({ params }: Props) {
 
   return (
     <>
-      <JsonLd data={data.seo?.structured_data || {}} />
+      <JsonLd siteData={data} />
       <LivePreviewWrapper initialData={data} siteId={siteId} />
     </>
   );
