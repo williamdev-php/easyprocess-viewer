@@ -210,10 +210,23 @@ export function PreviewShell({ initialData, siteId }: Props) {
     );
   }
 
+  // Helper: resolve section type and data for a key (supports duplicates)
+  const resolveSection = (key: string): { type: string; sectionData: Record<string, unknown> } | null => {
+    if (key.includes("__dup_")) {
+      const extra = data.extra_sections?.[key];
+      if (!extra?.type || !extra?.data) return null;
+      return { type: extra.type, sectionData: extra.data as Record<string, unknown> };
+    }
+    const sectionData = (data as Record<string, unknown>)[key];
+    if (!sectionData || typeof sectionData !== "object") return null;
+    return { type: key, sectionData: sectionData as Record<string, unknown> };
+  };
+
   // v1 renderer — the original inline rendering
   const renderSection = (key: string) => {
-    const sectionData = (data as Record<string, any>)[key];
-    if (!sectionData) return null;
+    const resolved = resolveSection(key);
+    if (!resolved) return null;
+    const { type, sectionData } = resolved;
 
     const wrap = (children: React.ReactNode) => (
       <ErrorBoundary sectionName={key} key={key}>
@@ -234,17 +247,17 @@ export function PreviewShell({ initialData, siteId }: Props) {
       </ErrorBoundary>
     );
 
-    switch (key) {
+    switch (type) {
       case "hero":
         return wrap(
           <Hero
-            headline={data.hero!.headline}
-            subtitle={data.hero!.subtitle}
-            cta={data.hero!.cta}
-            background_image={data.hero!.background_image}
-            show_cta={data.hero!.show_cta}
-            fullscreen={data.hero!.fullscreen}
-            show_gradient={data.hero!.show_gradient}
+            headline={(sectionData as any).headline}
+            subtitle={(sectionData as any).subtitle}
+            cta={(sectionData as any).cta}
+            background_image={(sectionData as any).background_image}
+            show_cta={(sectionData as any).show_cta}
+            fullscreen={(sectionData as any).fullscreen}
+            show_gradient={(sectionData as any).show_gradient}
             colors={colors}
             theme={theme}
             lang={lang}
@@ -253,49 +266,48 @@ export function PreviewShell({ initialData, siteId }: Props) {
         );
       case "about":
         return wrap(
-          <AboutSection {...data.about!} colors={colors} theme={theme} variant="snippet" siteId={siteId} lang={lang} variantStyle={variantStyle} show_gradient={getGradient("about")} />
+          <AboutSection {...sectionData as any} colors={colors} theme={theme} variant="snippet" siteId={siteId} lang={lang} variantStyle={variantStyle} show_gradient={getGradient(key)} />
         );
       case "features":
         return wrap(
-          <FeaturesSection {...data.features!} colors={colors} theme={theme} lang={lang} variantStyle={variantStyle} show_gradient={getGradient("features")} />
+          <FeaturesSection {...sectionData as any} colors={colors} theme={theme} lang={lang} variantStyle={variantStyle} show_gradient={getGradient(key)} />
         );
       case "stats":
         return wrap(
-          <StatsSection {...data.stats!} colors={colors} theme={theme} variantStyle={variantStyle} show_gradient={getGradient("stats")} />
+          <StatsSection {...sectionData as any} colors={colors} theme={theme} variantStyle={variantStyle} show_gradient={getGradient(key)} />
         );
       case "services":
         return wrap(
-          <ServicesSection {...data.services!} colors={colors} theme={theme} variant="snippet" siteId={siteId} lang={lang} variantStyle={variantStyle} show_gradient={getGradient("services")} />
+          <ServicesSection {...sectionData as any} colors={colors} theme={theme} variant="snippet" siteId={siteId} lang={lang} variantStyle={variantStyle} show_gradient={getGradient(key)} />
         );
       case "process":
         return wrap(
-          <ProcessSection {...data.process!} colors={colors} theme={theme} lang={lang} variantStyle={variantStyle} show_gradient={getGradient("process")} />
+          <ProcessSection {...sectionData as any} colors={colors} theme={theme} lang={lang} variantStyle={variantStyle} show_gradient={getGradient(key)} />
         );
       case "gallery":
         return wrap(
-          <GallerySection {...data.gallery!} colors={colors} theme={theme} lang={lang} variantStyle={variantStyle} />
+          <GallerySection {...sectionData as any} colors={colors} theme={theme} lang={lang} variantStyle={variantStyle} />
         );
       case "testimonials":
         return wrap(
-          <TestimonialsSection {...data.testimonials!} colors={colors} theme={theme} lang={lang} variantStyle={variantStyle} show_gradient={getGradient("testimonials")} />
+          <TestimonialsSection {...sectionData as any} colors={colors} theme={theme} lang={lang} variantStyle={variantStyle} show_gradient={getGradient(key)} />
         );
       case "team":
         return wrap(
-          <TeamSection {...data.team!} colors={colors} theme={theme} lang={lang} variantStyle={variantStyle} show_gradient={getGradient("team")} />
+          <TeamSection {...sectionData as any} colors={colors} theme={theme} lang={lang} variantStyle={variantStyle} show_gradient={getGradient(key)} />
         );
       case "faq":
         return wrap(
-          <FAQSection {...data.faq!} colors={colors} theme={theme} variantStyle={variantStyle} />
-
+          <FAQSection {...sectionData as any} colors={colors} theme={theme} variantStyle={variantStyle} />
         );
       case "cta":
         return wrap(
-          <CTASection {...data.cta!} colors={colors} theme={theme} variantStyle={variantStyle} show_gradient={getGradient("cta")} />
+          <CTASection {...sectionData as any} colors={colors} theme={theme} variantStyle={variantStyle} show_gradient={getGradient(key)} />
         );
       case "contact":
         return wrap(
           <ContactSection
-            {...data.contact!}
+            {...sectionData as any}
             email={data.business?.email}
             phone={data.business?.phone}
             address={data.business?.address}
@@ -304,32 +316,32 @@ export function PreviewShell({ initialData, siteId }: Props) {
             lang={lang}
             siteId={siteId}
             variantStyle={variantStyle}
-            show_gradient={getGradient("contact")}
+            show_gradient={getGradient(key)}
           />
         );
       case "pricing":
         return wrap(
-          <PricingSection {...data.pricing!} colors={colors} theme={theme} variantStyle={variantStyle} animation={getAnim("pricing")} />
+          <PricingSection {...sectionData as any} colors={colors} theme={theme} variantStyle={variantStyle} animation={getAnim(key)} />
         );
       case "video":
         return wrap(
-          <VideoSection {...data.video!} colors={colors} theme={theme} variantStyle={variantStyle} animation={getAnim("video")} />
+          <VideoSection {...sectionData as any} colors={colors} theme={theme} variantStyle={variantStyle} animation={getAnim(key)} />
         );
       case "logo_cloud":
         return wrap(
-          <LogoCloudSection {...data.logo_cloud!} colors={colors} theme={theme} variantStyle={variantStyle} animation={getAnim("logo_cloud")} />
+          <LogoCloudSection {...sectionData as any} colors={colors} theme={theme} variantStyle={variantStyle} animation={getAnim(key)} />
         );
       case "custom_content":
         return wrap(
-          <CustomContentSection {...data.custom_content!} colors={colors} theme={theme} variantStyle={variantStyle} animation={getAnim("custom_content")} />
+          <CustomContentSection {...sectionData as any} colors={colors} theme={theme} variantStyle={variantStyle} animation={getAnim(key)} />
         );
       case "banner":
         return wrap(
-          <BannerSection {...data.banner!} colors={colors} theme={theme} variantStyle={variantStyle} animation={getAnim("banner")} />
+          <BannerSection {...sectionData as any} colors={colors} theme={theme} variantStyle={variantStyle} animation={getAnim(key)} />
         );
       case "ranking":
         return wrap(
-          <RankingSection {...data.ranking!} colors={colors} theme={theme} variantStyle={variantStyle} animation={getAnim("ranking")} />
+          <RankingSection {...sectionData as any} colors={colors} theme={theme} variantStyle={variantStyle} animation={getAnim(key)} />
         );
       default:
         return null;

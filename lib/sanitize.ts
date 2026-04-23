@@ -32,6 +32,21 @@ export function limitSectionArrays(data: Record<string, unknown>): void {
       }
     }
   }
+
+  // Also limit arrays inside extra_sections (duplicated sections)
+  const extras = data.extra_sections;
+  if (extras && typeof extras === "object" && !Array.isArray(extras)) {
+    for (const entry of Object.values(extras as Record<string, { type?: string; data?: Record<string, unknown> }>)) {
+      if (!entry?.type || !entry?.data) continue;
+      for (const [section, field] of arrayFields) {
+        if (entry.type !== section) continue;
+        const arr = entry.data[field];
+        if (Array.isArray(arr) && arr.length > MAX_SECTION_ITEMS) {
+          entry.data[field] = arr.slice(0, MAX_SECTION_ITEMS);
+        }
+      }
+    }
+  }
 }
 
 /**

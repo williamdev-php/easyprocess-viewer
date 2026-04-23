@@ -38,7 +38,7 @@ export function LogoCloudSection({
   const text = colors.text;
 
   return (
-    <SectionWrap id="logo-cloud" theme={theme}>
+    <SectionWrap id="logo-cloud" theme={theme} bg={colors.background}>
       <div className="mx-auto max-w-5xl px-4 sm:px-6">
         {title && (
           <Animate animation={animation}>

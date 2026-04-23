@@ -155,281 +155,139 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
     );
   }
 
+  // Helper: resolve section type and data for a key (supports duplicates)
+  const resolveSection = (key: string): { type: string; sectionData: Record<string, unknown> } | null => {
+    // Duplicate section: "about__dup_1700000000"
+    if (key.includes("__dup_")) {
+      const extra = data.extra_sections?.[key];
+      if (!extra?.type || !extra?.data) return null;
+      return { type: extra.type, sectionData: extra.data as Record<string, unknown> };
+    }
+    // Regular section
+    const sectionData = (data as Record<string, unknown>)[key];
+    if (!sectionData || typeof sectionData !== "object") return null;
+    return { type: key, sectionData: sectionData as Record<string, unknown> };
+  };
+
   // v1 renderer — the original inline rendering (frozen after production launch)
   const renderSection = (key: string) => {
-    switch (key) {
+    const resolved = resolveSection(key);
+    if (!resolved) return null;
+    const { type, sectionData } = resolved;
+
+    const wrap = (children: React.ReactNode) => (
+      <ErrorBoundary sectionName={key} key={key}>
+        <EditableSection section={key} isEditing={isEditing}>
+          {children}
+        </EditableSection>
+      </ErrorBoundary>
+    );
+
+    switch (type) {
       case "hero":
-        return data.hero ? (
-          <ErrorBoundary sectionName="hero" key="hero">
-            <EditableSection section="hero" isEditing={isEditing}>
-              <Hero
-                headline={data.hero.headline}
-                subtitle={data.hero.subtitle}
-                cta={data.hero.cta}
-                background_image={data.hero.background_image}
-                show_cta={data.hero.show_cta}
-                fullscreen={data.hero.fullscreen}
-                show_gradient={data.hero.show_gradient}
-                colors={colors}
-                theme={theme}
-                lang={lang}
-                variantStyle={variantStyle}
-              />
-            </EditableSection>
-          </ErrorBoundary>
-        ) : null;
+        return wrap(
+          <Hero
+            headline={(sectionData as any).headline}
+            subtitle={(sectionData as any).subtitle}
+            cta={(sectionData as any).cta}
+            background_image={(sectionData as any).background_image}
+            show_cta={(sectionData as any).show_cta}
+            fullscreen={(sectionData as any).fullscreen}
+            show_gradient={(sectionData as any).show_gradient}
+            colors={colors}
+            theme={theme}
+            lang={lang}
+            variantStyle={variantStyle}
+          />
+        );
       case "about":
-        return data.about ? (
-          <ErrorBoundary sectionName="about" key="about">
-            <EditableSection section="about" isEditing={isEditing}>
-              <AboutSection
-                {...data.about}
-                colors={colors}
-                theme={theme}
-                variant="snippet"
-                siteId={siteId}
-                lang={lang}
-                variantStyle={variantStyle}
-                show_gradient={getGradient("about")}
-              />
-            </EditableSection>
-          </ErrorBoundary>
-        ) : null;
+        return wrap(
+          <AboutSection
+            {...sectionData as any}
+            colors={colors}
+            theme={theme}
+            variant="snippet"
+            siteId={siteId}
+            lang={lang}
+            variantStyle={variantStyle}
+            show_gradient={getGradient(key)}
+          />
+        );
       case "features":
-        return data.features ? (
-          <ErrorBoundary sectionName="features" key="features">
-            <EditableSection section="features" isEditing={isEditing}>
-              <FeaturesSection
-                {...data.features}
-                colors={colors}
-                theme={theme}
-                lang={lang}
-                variantStyle={variantStyle}
-                show_gradient={getGradient("features")}
-              />
-            </EditableSection>
-          </ErrorBoundary>
-        ) : null;
+        return wrap(
+          <FeaturesSection {...sectionData as any} colors={colors} theme={theme} lang={lang} variantStyle={variantStyle} show_gradient={getGradient(key)} />
+        );
       case "stats":
-        return data.stats ? (
-          <ErrorBoundary sectionName="stats" key="stats">
-            <EditableSection section="stats" isEditing={isEditing}>
-              <StatsSection
-                {...data.stats}
-                colors={colors}
-                theme={theme}
-                variantStyle={variantStyle}
-                show_gradient={getGradient("stats")}
-              />
-            </EditableSection>
-          </ErrorBoundary>
-        ) : null;
+        return wrap(
+          <StatsSection {...sectionData as any} colors={colors} theme={theme} variantStyle={variantStyle} show_gradient={getGradient(key)} />
+        );
       case "services":
-        return data.services ? (
-          <ErrorBoundary sectionName="services" key="services">
-            <EditableSection section="services" isEditing={isEditing}>
-              <ServicesSection
-                {...data.services}
-                colors={colors}
-                theme={theme}
-                variant="snippet"
-                siteId={siteId}
-                lang={lang}
-                variantStyle={variantStyle}
-                show_gradient={getGradient("services")}
-              />
-            </EditableSection>
-          </ErrorBoundary>
-        ) : null;
+        return wrap(
+          <ServicesSection {...sectionData as any} colors={colors} theme={theme} variant="snippet" siteId={siteId} lang={lang} variantStyle={variantStyle} show_gradient={getGradient(key)} />
+        );
       case "process":
-        return data.process ? (
-          <ErrorBoundary sectionName="process" key="process">
-            <EditableSection section="process" isEditing={isEditing}>
-              <ProcessSection
-                {...data.process}
-                colors={colors}
-                theme={theme}
-                lang={lang}
-                variantStyle={variantStyle}
-                show_gradient={getGradient("process")}
-              />
-            </EditableSection>
-          </ErrorBoundary>
-        ) : null;
+        return wrap(
+          <ProcessSection {...sectionData as any} colors={colors} theme={theme} lang={lang} variantStyle={variantStyle} show_gradient={getGradient(key)} />
+        );
       case "gallery":
-        return data.gallery ? (
-          <ErrorBoundary sectionName="gallery" key="gallery">
-            <EditableSection section="gallery" isEditing={isEditing}>
-              <GallerySection
-                {...data.gallery}
-                colors={colors}
-                theme={theme}
-                lang={lang}
-                variantStyle={variantStyle}
-              />
-            </EditableSection>
-          </ErrorBoundary>
-        ) : null;
+        return wrap(
+          <GallerySection {...sectionData as any} colors={colors} theme={theme} lang={lang} variantStyle={variantStyle} />
+        );
       case "testimonials":
-        return data.testimonials ? (
-          <ErrorBoundary sectionName="testimonials" key="testimonials">
-            <EditableSection section="testimonials" isEditing={isEditing}>
-              <TestimonialsSection
-                {...data.testimonials}
-                colors={colors}
-                theme={theme}
-                lang={lang}
-                variantStyle={variantStyle}
-                show_gradient={getGradient("testimonials")}
-              />
-            </EditableSection>
-          </ErrorBoundary>
-        ) : null;
+        return wrap(
+          <TestimonialsSection {...sectionData as any} colors={colors} theme={theme} lang={lang} variantStyle={variantStyle} show_gradient={getGradient(key)} />
+        );
       case "team":
-        return data.team ? (
-          <ErrorBoundary sectionName="team" key="team">
-            <EditableSection section="team" isEditing={isEditing}>
-              <TeamSection
-                {...data.team}
-                colors={colors}
-                theme={theme}
-                lang={lang}
-                variantStyle={variantStyle}
-                show_gradient={getGradient("team")}
-              />
-            </EditableSection>
-          </ErrorBoundary>
-        ) : null;
+        return wrap(
+          <TeamSection {...sectionData as any} colors={colors} theme={theme} lang={lang} variantStyle={variantStyle} show_gradient={getGradient(key)} />
+        );
       case "faq":
-        return data.faq ? (
-          <ErrorBoundary sectionName="faq" key="faq">
-            <EditableSection section="faq" isEditing={isEditing}>
-              <FAQSection
-                {...data.faq}
-                colors={colors}
-                theme={theme}
-                variantStyle={variantStyle}
-              />
-            </EditableSection>
-          </ErrorBoundary>
-        ) : null;
+        return wrap(
+          <FAQSection {...sectionData as any} colors={colors} theme={theme} variantStyle={variantStyle} />
+        );
       case "cta":
-        return data.cta ? (
-          <ErrorBoundary sectionName="cta" key="cta">
-            <EditableSection section="cta" isEditing={isEditing}>
-              <CTASection
-                {...data.cta}
-                colors={colors}
-                theme={theme}
-                variantStyle={variantStyle}
-                show_gradient={getGradient("cta")}
-              />
-            </EditableSection>
-          </ErrorBoundary>
-        ) : null;
+        return wrap(
+          <CTASection {...sectionData as any} colors={colors} theme={theme} variantStyle={variantStyle} show_gradient={getGradient(key)} />
+        );
       case "contact":
-        return data.contact ? (
-          <ErrorBoundary sectionName="contact" key="contact">
-            <EditableSection section="contact" isEditing={isEditing}>
-              <ContactSection
-                {...data.contact}
-                email={data.business?.email}
-                phone={data.business?.phone}
-                address={data.business?.address}
-                colors={colors}
-                theme={theme}
-                lang={lang}
-                siteId={siteId}
-                variantStyle={variantStyle}
-                show_gradient={getGradient("contact")}
-              />
-            </EditableSection>
-          </ErrorBoundary>
-        ) : null;
+        return wrap(
+          <ContactSection
+            {...sectionData as any}
+            email={data.business?.email}
+            phone={data.business?.phone}
+            address={data.business?.address}
+            colors={colors}
+            theme={theme}
+            lang={lang}
+            siteId={siteId}
+            variantStyle={variantStyle}
+            show_gradient={getGradient(key)}
+          />
+        );
       case "pricing":
-        return data.pricing ? (
-          <ErrorBoundary sectionName="pricing" key="pricing">
-            <EditableSection section="pricing" isEditing={isEditing}>
-              <PricingSection
-                {...data.pricing}
-                colors={colors}
-                theme={theme}
-                variantStyle={variantStyle}
-                animation={getAnim("pricing")}
-              />
-            </EditableSection>
-          </ErrorBoundary>
-        ) : null;
+        return wrap(
+          <PricingSection {...sectionData as any} colors={colors} theme={theme} variantStyle={variantStyle} animation={getAnim(key)} />
+        );
       case "video":
-        return data.video ? (
-          <ErrorBoundary sectionName="video" key="video">
-            <EditableSection section="video" isEditing={isEditing}>
-              <VideoSection
-                {...data.video}
-                colors={colors}
-                theme={theme}
-                variantStyle={variantStyle}
-                animation={getAnim("video")}
-              />
-            </EditableSection>
-          </ErrorBoundary>
-        ) : null;
+        return wrap(
+          <VideoSection {...sectionData as any} colors={colors} theme={theme} variantStyle={variantStyle} animation={getAnim(key)} />
+        );
       case "logo_cloud":
-        return data.logo_cloud ? (
-          <ErrorBoundary sectionName="logo_cloud" key="logo_cloud">
-            <EditableSection section="logo_cloud" isEditing={isEditing}>
-              <LogoCloudSection
-                {...data.logo_cloud}
-                colors={colors}
-                theme={theme}
-                variantStyle={variantStyle}
-                animation={getAnim("logo_cloud")}
-              />
-            </EditableSection>
-          </ErrorBoundary>
-        ) : null;
+        return wrap(
+          <LogoCloudSection {...sectionData as any} colors={colors} theme={theme} variantStyle={variantStyle} animation={getAnim(key)} />
+        );
       case "custom_content":
-        return data.custom_content ? (
-          <ErrorBoundary sectionName="custom_content" key="custom_content">
-            <EditableSection section="custom_content" isEditing={isEditing}>
-              <CustomContentSection
-                {...data.custom_content}
-                colors={colors}
-                theme={theme}
-                variantStyle={variantStyle}
-                animation={getAnim("custom_content")}
-              />
-            </EditableSection>
-          </ErrorBoundary>
-        ) : null;
+        return wrap(
+          <CustomContentSection {...sectionData as any} colors={colors} theme={theme} variantStyle={variantStyle} animation={getAnim(key)} />
+        );
       case "banner":
-        return data.banner ? (
-          <ErrorBoundary sectionName="banner" key="banner">
-            <EditableSection section="banner" isEditing={isEditing}>
-              <BannerSection
-                {...data.banner}
-                colors={colors}
-                theme={theme}
-                variantStyle={variantStyle}
-                animation={getAnim("banner")}
-              />
-            </EditableSection>
-          </ErrorBoundary>
-        ) : null;
+        return wrap(
+          <BannerSection {...sectionData as any} colors={colors} theme={theme} variantStyle={variantStyle} animation={getAnim(key)} />
+        );
       case "ranking":
-        return data.ranking ? (
-          <ErrorBoundary sectionName="ranking" key="ranking">
-            <EditableSection section="ranking" isEditing={isEditing}>
-              <RankingSection
-                {...data.ranking}
-                colors={colors}
-                theme={theme}
-                variantStyle={variantStyle}
-                animation={getAnim("ranking")}
-              />
-            </EditableSection>
-          </ErrorBoundary>
-        ) : null;
+        return wrap(
+          <RankingSection {...sectionData as any} colors={colors} theme={theme} variantStyle={variantStyle} animation={getAnim(key)} />
+        );
       default:
         return null;
     }

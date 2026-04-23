@@ -37,7 +37,7 @@ export function RankingSection({
   const accent = colors.accent;
 
   return (
-    <SectionWrap id="ranking" theme={theme}>
+    <SectionWrap id="ranking" theme={theme} bg={colors.background}>
       <div className="mx-auto max-w-4xl px-4 sm:px-6">
         {title && (
           <Animate animation={animation}>

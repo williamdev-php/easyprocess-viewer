@@ -32,6 +32,7 @@ export function StatsSection({
 
   return (
     <section
+      id="stats"
       className="relative overflow-hidden px-5 py-20 sm:px-8 sm:py-28"
       style={{ background: colors.primary }}
     >

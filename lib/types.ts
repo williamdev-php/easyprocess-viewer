@@ -106,6 +106,11 @@ export interface SectionSettings {
   show_gradient?: boolean;
 }
 
+export interface ExtraSection {
+  type: string; // section key, e.g. "about", "stats"
+  data: Record<string, unknown>;
+}
+
 export interface HeadScript {
   src?: string | null;
   content?: string | null;
@@ -260,6 +265,7 @@ export interface SiteData {
     subtitle?: string;
     items?: RankingItem[];
   } | null;
+  extra_sections?: Record<string, ExtraSection>;
   section_settings?: Record<string, SectionSettings>;
   seo?: {
     structured_data?: Record<string, unknown>;

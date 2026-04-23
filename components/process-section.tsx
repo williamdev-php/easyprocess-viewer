@@ -189,7 +189,7 @@ export function ProcessSection({
   const maxW = variantStyle.processLayout === "timeline" ? "max-w-4xl" : "max-w-6xl";
 
   return (
-    <SectionWrap theme={theme} bg={colors.background}>
+    <SectionWrap id="process" theme={theme} bg={colors.background}>
       <div className={`mx-auto ${maxW}`}>
         {title && (
           <Reveal>
