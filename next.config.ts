@@ -29,7 +29,7 @@ const nextConfig: NextConfig = {
     };
   },
   async headers() {
-    const frameAncestors = `frame-ancestors 'self' https://qvicko.se https://*.qvicko.se https://qvicko.com https://*.qvicko.com ${editorOrigin}`;
+    const frameAncestors = `frame-ancestors 'self' https://qvicko.se https://*.qvicko.se https://qvicko.com https://*.qvicko.com http://localhost:* ${editorOrigin}`;
     return [
       {
         // Favicon and public assets — cache for 1 day
