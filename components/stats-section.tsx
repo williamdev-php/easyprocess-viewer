@@ -12,12 +12,14 @@ export function StatsSection({
   colors,
   theme,
   variantStyle,
+  show_gradient = true,
 }: {
   title?: string;
   items?: StatItem[];
   colors: Colors;
   theme: Theme;
   variantStyle: VariantStyle;
+  show_gradient?: boolean;
 }) {
   if (!items?.length) return null;
 
@@ -34,7 +36,7 @@ export function StatsSection({
       style={{ background: colors.primary }}
     >
       {/* Decorative background */}
-      {variantStyle.showDecorations && (
+      {show_gradient && variantStyle.showDecorations && (
         <>
           <div
             className="absolute inset-0 opacity-[0.08]"

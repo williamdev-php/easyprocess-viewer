@@ -92,9 +92,18 @@ export interface OpeningHoursDay {
   closed?: boolean;
 }
 
+export interface RankingItem {
+  rank?: number;
+  title: string;
+  description?: string;
+  image?: string | null;
+  link?: CTAButton | null;
+}
+
 export interface SectionSettings {
   animation?: string; // "fade-up" | "fade-in" | "slide-left" | "slide-right" | "scale" | "none"
   background_color?: string;
+  show_gradient?: boolean;
 }
 
 export interface HeadScript {
@@ -157,6 +166,8 @@ export interface SiteData {
     cta?: CTAButton | null;
     background_image?: string | null;
     show_cta?: boolean;
+    fullscreen?: boolean;
+    show_gradient?: boolean;
   } | null;
   about?: {
     title?: string;
@@ -243,6 +254,11 @@ export interface SiteData {
     text?: string;
     button?: CTAButton | null;
     background_color?: string;
+  } | null;
+  ranking?: {
+    title?: string;
+    subtitle?: string;
+    items?: RankingItem[];
   } | null;
   section_settings?: Record<string, SectionSettings>;
   seo?: {

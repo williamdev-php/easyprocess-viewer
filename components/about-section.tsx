@@ -23,6 +23,7 @@ export function AboutSection({
   lang,
   show_highlights = true,
   variantStyle,
+  show_gradient = true,
 }: {
   title?: string;
   text?: string;
@@ -35,6 +36,7 @@ export function AboutSection({
   lang?: string;
   show_highlights?: boolean;
   variantStyle: VariantStyle;
+  show_gradient?: boolean;
 }) {
   if (!title && !text) return null;
 
@@ -189,7 +191,7 @@ export function AboutSection({
                   />
                 </div>
                 {/* Decorative accent */}
-                {variantStyle.showDecorations && (
+                {show_gradient && variantStyle.showDecorations && (
                   <div
                     className={`absolute -bottom-3 -right-3 -z-10 h-full w-full ${variantStyle.cardRadius}`}
                     style={{

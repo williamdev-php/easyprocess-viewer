@@ -23,6 +23,7 @@ import { VideoSection } from "@/components/video-section";
 import { LogoCloudSection } from "@/components/logo-cloud-section";
 import { CustomContentSection } from "@/components/custom-content-section";
 import { BannerSection } from "@/components/banner-section";
+import { RankingSection } from "@/components/ranking-section";
 import { Nav } from "@/components/nav";
 import { Footer } from "@/components/footer";
 import { ErrorBoundary } from "@/components/error-boundary";
@@ -40,6 +41,7 @@ const DEFAULT_ORDER = [
   "hero", "about", "features", "stats", "services", "process",
   "gallery", "team", "testimonials", "faq", "cta", "contact",
   "pricing", "video", "logo_cloud", "custom_content", "banner",
+  "ranking",
 ];
 
 export function PreviewShell({ initialData, siteId }: Props) {
@@ -134,6 +136,8 @@ export function PreviewShell({ initialData, siteId }: Props) {
 
   const getAnim = (key: string) =>
     (data.section_settings?.[key]?.animation as import("@/components/animate").AnimationType) || "fade-up";
+  const getGradient = (key: string) =>
+    data.section_settings?.[key]?.show_gradient !== false;
 
   // Check if this site uses a non-v1 version with a dedicated renderer
   const version = resolveVersion(data);
@@ -218,6 +222,8 @@ export function PreviewShell({ initialData, siteId }: Props) {
             cta={data.hero!.cta}
             background_image={data.hero!.background_image}
             show_cta={data.hero!.show_cta}
+            fullscreen={data.hero!.fullscreen}
+            show_gradient={data.hero!.show_gradient}
             colors={colors}
             theme={theme}
             lang={lang}
@@ -226,23 +232,23 @@ export function PreviewShell({ initialData, siteId }: Props) {
         );
       case "about":
         return wrap(
-          <AboutSection {...data.about!} colors={colors} theme={theme} variant="snippet" siteId={siteId} lang={lang} variantStyle={variantStyle} />
+          <AboutSection {...data.about!} colors={colors} theme={theme} variant="snippet" siteId={siteId} lang={lang} variantStyle={variantStyle} show_gradient={getGradient("about")} />
         );
       case "features":
         return wrap(
-          <FeaturesSection {...data.features!} colors={colors} theme={theme} lang={lang} variantStyle={variantStyle} />
+          <FeaturesSection {...data.features!} colors={colors} theme={theme} lang={lang} variantStyle={variantStyle} show_gradient={getGradient("features")} />
         );
       case "stats":
         return wrap(
-          <StatsSection {...data.stats!} colors={colors} theme={theme} variantStyle={variantStyle} />
+          <StatsSection {...data.stats!} colors={colors} theme={theme} variantStyle={variantStyle} show_gradient={getGradient("stats")} />
         );
       case "services":
         return wrap(
-          <ServicesSection {...data.services!} colors={colors} theme={theme} variant="snippet" siteId={siteId} lang={lang} variantStyle={variantStyle} />
+          <ServicesSection {...data.services!} colors={colors} theme={theme} variant="snippet" siteId={siteId} lang={lang} variantStyle={variantStyle} show_gradient={getGradient("services")} />
         );
       case "process":
         return wrap(
-          <ProcessSection {...data.process!} colors={colors} theme={theme} lang={lang} variantStyle={variantStyle} />
+          <ProcessSection {...data.process!} colors={colors} theme={theme} lang={lang} variantStyle={variantStyle} show_gradient={getGradient("process")} />
         );
       case "gallery":
         return wrap(
@@ -250,19 +256,20 @@ export function PreviewShell({ initialData, siteId }: Props) {
         );
       case "testimonials":
         return wrap(
-          <TestimonialsSection {...data.testimonials!} colors={colors} theme={theme} lang={lang} variantStyle={variantStyle} />
+          <TestimonialsSection {...data.testimonials!} colors={colors} theme={theme} lang={lang} variantStyle={variantStyle} show_gradient={getGradient("testimonials")} />
         );
       case "team":
         return wrap(
-          <TeamSection {...data.team!} colors={colors} theme={theme} lang={lang} variantStyle={variantStyle} />
+          <TeamSection {...data.team!} colors={colors} theme={theme} lang={lang} variantStyle={variantStyle} show_gradient={getGradient("team")} />
         );
       case "faq":
         return wrap(
           <FAQSection {...data.faq!} colors={colors} theme={theme} variantStyle={variantStyle} />
+
         );
       case "cta":
         return wrap(
-          <CTASection {...data.cta!} colors={colors} theme={theme} variantStyle={variantStyle} />
+          <CTASection {...data.cta!} colors={colors} theme={theme} variantStyle={variantStyle} show_gradient={getGradient("cta")} />
         );
       case "contact":
         return wrap(
@@ -276,6 +283,7 @@ export function PreviewShell({ initialData, siteId }: Props) {
             lang={lang}
             siteId={siteId}
             variantStyle={variantStyle}
+            show_gradient={getGradient("contact")}
           />
         );
       case "pricing":
@@ -297,6 +305,10 @@ export function PreviewShell({ initialData, siteId }: Props) {
       case "banner":
         return wrap(
           <BannerSection {...data.banner!} colors={colors} theme={theme} variantStyle={variantStyle} animation={getAnim("banner")} />
+        );
+      case "ranking":
+        return wrap(
+          <RankingSection {...data.ranking!} colors={colors} theme={theme} variantStyle={variantStyle} animation={getAnim("ranking")} />
         );
       default:
         return null;

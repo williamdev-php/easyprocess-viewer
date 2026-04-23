@@ -84,34 +84,26 @@ function FAQCards({
   colors: Colors;
   variantStyle: VariantStyle;
 }) {
-  const [openIndex, setOpenIndex] = useState<number | null>(0);
-
   return (
     <div className={`grid gap-4 ${variantStyle.gridCols}`}>
       {items.map((faq, i) => (
         <Reveal key={i} delay={i * 60}>
           <div
-            className={`h-full ${variantStyle.cardRadius} ${variantStyle.cardBorder ? "border" : ""} ${variantStyle.cardPadding} ${variantStyle.cardShadow} cursor-pointer transition-all duration-300 ${variantStyle.hoverEffect}`}
+            className={`h-full ${variantStyle.cardRadius} ${variantStyle.cardBorder ? "border" : ""} ${variantStyle.cardPadding} ${variantStyle.cardShadow} transition-all duration-300 ${variantStyle.hoverEffect}`}
             style={{
               background: colors.background,
               ...(variantStyle.cardBorder ? { borderColor: mixColor(colors.text, colors.background, 0.93) } : {}),
             }}
-            onClick={() => setOpenIndex(openIndex === i ? null : i)}
           >
             <h3 className="mb-3 text-base font-semibold" style={{ color: colors.text }}>
               {faq.question}
             </h3>
-            <div
-              className="transition-all duration-300 ease-out overflow-hidden"
-              style={{ maxHeight: openIndex === i ? "300px" : "0", opacity: openIndex === i ? 1 : 0 }}
+            <p
+              className="text-sm leading-relaxed"
+              style={{ color: mixColor(colors.text, colors.background, 0.35) }}
             >
-              <p
-                className="text-sm leading-relaxed"
-                style={{ color: mixColor(colors.text, colors.background, 0.35) }}
-              >
-                {faq.answer}
-              </p>
-            </div>
+              {faq.answer}
+            </p>
           </div>
         </Reveal>
       ))}

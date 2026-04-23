@@ -12,10 +12,12 @@ function TimelineLayout({
   steps,
   colors,
   variantStyle,
+  show_gradient = true,
 }: {
   steps: ProcessStep[];
   colors: Colors;
   variantStyle: VariantStyle;
+  show_gradient?: boolean;
 }) {
   return (
     <div className="relative">
@@ -32,8 +34,8 @@ function TimelineLayout({
                 <div
                   className="relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-base font-bold text-white"
                   style={{
-                    background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
-                    boxShadow: `0 4px 12px ${colors.primary}30`,
+                    background: show_gradient ? `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` : colors.primary,
+                    boxShadow: show_gradient ? `0 4px 12px ${colors.primary}30` : undefined,
                   }}
                 >
                   {num}
@@ -68,10 +70,12 @@ function CardsLayout({
   steps,
   colors,
   variantStyle,
+  show_gradient = true,
 }: {
   steps: ProcessStep[];
   colors: Colors;
   variantStyle: VariantStyle;
+  show_gradient?: boolean;
 }) {
   return (
     <div className={`grid gap-5 ${variantStyle.gridCols}`}>
@@ -88,7 +92,7 @@ function CardsLayout({
             >
               <div
                 className={`mb-4 flex h-10 w-10 items-center justify-center ${variantStyle.iconRadius} text-sm font-bold text-white`}
-                style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
+                style={{ background: show_gradient ? `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` : colors.primary }}
               >
                 {num}
               </div>
@@ -113,10 +117,12 @@ function HorizontalLayout({
   steps,
   colors,
   variantStyle,
+  show_gradient = true,
 }: {
   steps: ProcessStep[];
   colors: Colors;
   variantStyle: VariantStyle;
+  show_gradient?: boolean;
 }) {
   return (
     <div className="relative">
@@ -134,8 +140,8 @@ function HorizontalLayout({
                 <div
                   className={`relative z-10 mx-auto mb-5 flex h-14 w-14 items-center justify-center ${variantStyle.iconRadius} text-lg font-bold text-white`}
                   style={{
-                    background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
-                    boxShadow: `0 4px 12px ${colors.primary}30`,
+                    background: show_gradient ? `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` : colors.primary,
+                    boxShadow: show_gradient ? `0 4px 12px ${colors.primary}30` : undefined,
                   }}
                 >
                   {num}
@@ -166,6 +172,7 @@ export function ProcessSection({
   theme,
   lang,
   variantStyle,
+  show_gradient = true,
 }: {
   title?: string;
   subtitle?: string;
@@ -174,6 +181,7 @@ export function ProcessSection({
   theme: Theme;
   lang?: string;
   variantStyle: VariantStyle;
+  show_gradient?: boolean;
 }) {
   if (!steps?.length) return null;
 
@@ -211,13 +219,13 @@ export function ProcessSection({
         )}
 
         {variantStyle.processLayout === "timeline" && (
-          <TimelineLayout steps={steps} colors={colors} variantStyle={variantStyle} />
+          <TimelineLayout steps={steps} colors={colors} variantStyle={variantStyle} show_gradient={show_gradient} />
         )}
         {variantStyle.processLayout === "cards" && (
-          <CardsLayout steps={steps} colors={colors} variantStyle={variantStyle} />
+          <CardsLayout steps={steps} colors={colors} variantStyle={variantStyle} show_gradient={show_gradient} />
         )}
         {variantStyle.processLayout === "horizontal" && (
-          <HorizontalLayout steps={steps} colors={colors} variantStyle={variantStyle} />
+          <HorizontalLayout steps={steps} colors={colors} variantStyle={variantStyle} show_gradient={show_gradient} />
         )}
       </div>
     </SectionWrap>

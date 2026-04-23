@@ -24,6 +24,7 @@ const VideoSection = dynamic(() => import("@/components/video-section").then(m =
 const LogoCloudSection = dynamic(() => import("@/components/logo-cloud-section").then(m => ({ default: m.LogoCloudSection })));
 const CustomContentSection = dynamic(() => import("@/components/custom-content-section").then(m => ({ default: m.CustomContentSection })));
 const BannerSection = dynamic(() => import("@/components/banner-section").then(m => ({ default: m.BannerSection })));
+const RankingSection = dynamic(() => import("@/components/ranking-section").then(m => ({ default: m.RankingSection })));
 import { ErrorBoundary } from "@/components/error-boundary";
 import { t } from "@/lib/i18n";
 import { resolveVersion, getVersionRenderer } from "@/lib/version-registry";
@@ -112,6 +113,7 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
     "hero", "about", "features", "stats", "services", "process",
     "gallery", "team", "testimonials", "faq", "cta", "contact",
     "pricing", "video", "logo_cloud", "custom_content", "banner",
+    "ranking",
   ];
   const sectionOrder = (() => {
     const order = data.section_order;
@@ -126,6 +128,8 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
   // Helper to get animation for a section from section_settings
   const getAnim = (key: string) =>
     (data.section_settings?.[key]?.animation as import("@/components/animate").AnimationType) || "fade-up";
+  const getGradient = (key: string) =>
+    data.section_settings?.[key]?.show_gradient !== false;
 
   // Check if this site uses a non-v1 version with a dedicated renderer
   const version = resolveVersion(data);
@@ -164,6 +168,8 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
                 cta={data.hero.cta}
                 background_image={data.hero.background_image}
                 show_cta={data.hero.show_cta}
+                fullscreen={data.hero.fullscreen}
+                show_gradient={data.hero.show_gradient}
                 colors={colors}
                 theme={theme}
                 lang={lang}
@@ -184,6 +190,7 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
                 siteId={siteId}
                 lang={lang}
                 variantStyle={variantStyle}
+                show_gradient={getGradient("about")}
               />
             </EditableSection>
           </ErrorBoundary>
@@ -198,6 +205,7 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
                 theme={theme}
                 lang={lang}
                 variantStyle={variantStyle}
+                show_gradient={getGradient("features")}
               />
             </EditableSection>
           </ErrorBoundary>
@@ -211,6 +219,7 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
                 colors={colors}
                 theme={theme}
                 variantStyle={variantStyle}
+                show_gradient={getGradient("stats")}
               />
             </EditableSection>
           </ErrorBoundary>
@@ -227,6 +236,7 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
                 siteId={siteId}
                 lang={lang}
                 variantStyle={variantStyle}
+                show_gradient={getGradient("services")}
               />
             </EditableSection>
           </ErrorBoundary>
@@ -241,6 +251,7 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
                 theme={theme}
                 lang={lang}
                 variantStyle={variantStyle}
+                show_gradient={getGradient("process")}
               />
             </EditableSection>
           </ErrorBoundary>
@@ -269,6 +280,7 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
                 theme={theme}
                 lang={lang}
                 variantStyle={variantStyle}
+                show_gradient={getGradient("testimonials")}
               />
             </EditableSection>
           </ErrorBoundary>
@@ -283,6 +295,7 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
                 theme={theme}
                 lang={lang}
                 variantStyle={variantStyle}
+                show_gradient={getGradient("team")}
               />
             </EditableSection>
           </ErrorBoundary>
@@ -309,6 +322,7 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
                 colors={colors}
                 theme={theme}
                 variantStyle={variantStyle}
+                show_gradient={getGradient("cta")}
               />
             </EditableSection>
           </ErrorBoundary>
@@ -327,6 +341,7 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
                 lang={lang}
                 siteId={siteId}
                 variantStyle={variantStyle}
+                show_gradient={getGradient("contact")}
               />
             </EditableSection>
           </ErrorBoundary>
@@ -397,6 +412,20 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
                 theme={theme}
                 variantStyle={variantStyle}
                 animation={getAnim("banner")}
+              />
+            </EditableSection>
+          </ErrorBoundary>
+        ) : null;
+      case "ranking":
+        return data.ranking ? (
+          <ErrorBoundary sectionName="ranking" key="ranking">
+            <EditableSection section="ranking" isEditing={isEditing}>
+              <RankingSection
+                {...data.ranking}
+                colors={colors}
+                theme={theme}
+                variantStyle={variantStyle}
+                animation={getAnim("ranking")}
               />
             </EditableSection>
           </ErrorBoundary>

@@ -187,10 +187,12 @@ function ContactInfoItems({
   contactItems,
   colors,
   variantStyle,
+  show_gradient = true,
 }: {
   contactItems: { icon: ReactNode; label: string; value: string; href?: string }[];
   colors: Colors;
   variantStyle: VariantStyle;
+  show_gradient?: boolean;
 }) {
   const gridClass =
     contactItems.length === 1
@@ -216,7 +218,7 @@ function ContactInfoItems({
             <div
               className={`mx-auto mb-4 flex h-14 w-14 items-center justify-center ${variantStyle.iconRadius}`}
               style={{
-                background: `linear-gradient(135deg, ${mixColor(colors.primary, colors.background, 0.88)}, ${mixColor(colors.accent, colors.background, 0.85)})`,
+                background: show_gradient ? `linear-gradient(135deg, ${mixColor(colors.primary, colors.background, 0.88)}, ${mixColor(colors.accent, colors.background, 0.85)})` : mixColor(colors.primary, colors.background, 0.88),
               }}
             >
               <svg
@@ -259,6 +261,7 @@ export function ContactSection({
   show_form = true,
   show_info = true,
   variantStyle,
+  show_gradient = true,
 }: {
   title?: string;
   text?: string;
@@ -272,6 +275,7 @@ export function ContactSection({
   show_form?: boolean;
   show_info?: boolean;
   variantStyle: VariantStyle;
+  show_gradient?: boolean;
 }) {
   const safeEmail = sanitizeEmail(email);
   const safePhone = sanitizePhone(phone);
@@ -369,7 +373,7 @@ export function ContactSection({
                         <div
                           className={`flex h-12 w-12 shrink-0 items-center justify-center ${variantStyle.iconRadius}`}
                           style={{
-                            background: `linear-gradient(135deg, ${mixColor(colors.primary, colors.background, 0.88)}, ${mixColor(colors.accent, colors.background, 0.85)})`,
+                            background: show_gradient ? `linear-gradient(135deg, ${mixColor(colors.primary, colors.background, 0.88)}, ${mixColor(colors.accent, colors.background, 0.85)})` : mixColor(colors.primary, colors.background, 0.88),
                           }}
                         >
                           <svg
@@ -409,7 +413,7 @@ export function ContactSection({
             {show_info && contactItems.length > 0 && (
               <Reveal delay={160}>
                 <div className="mt-14">
-                  <ContactInfoItems contactItems={contactItems} colors={colors} variantStyle={variantStyle} />
+                  <ContactInfoItems contactItems={contactItems} colors={colors} variantStyle={variantStyle} show_gradient={show_gradient} />
                 </div>
               </Reveal>
             )}

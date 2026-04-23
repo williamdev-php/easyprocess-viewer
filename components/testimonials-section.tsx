@@ -26,12 +26,14 @@ function CardTestimonial({
   variantStyle,
   show_ratings,
   delay,
+  show_gradient = true,
 }: {
   item: TestimonialItem;
   colors: Colors;
   variantStyle: VariantStyle;
   show_ratings: boolean;
   delay: number;
+  show_gradient?: boolean;
 }) {
   return (
     <Reveal delay={delay}>
@@ -53,7 +55,7 @@ function CardTestimonial({
           <div
             className={`flex h-11 w-11 items-center justify-center ${variantStyle.iconRadius} text-sm font-bold text-white`}
             style={{
-              background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
+              background: show_gradient ? `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` : colors.primary,
             }}
           >
             {item.author.charAt(0)}
@@ -113,18 +115,20 @@ function MinimalTestimonial({
   colors,
   show_ratings,
   delay,
+  show_gradient = true,
 }: {
   item: TestimonialItem;
   colors: Colors;
   show_ratings: boolean;
   delay: number;
+  show_gradient?: boolean;
 }) {
   return (
     <Reveal delay={delay}>
       <div className="h-full text-center">
         <div
           className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full text-2xl font-bold text-white"
-          style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}
+          style={{ background: show_gradient ? `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` : colors.primary }}
         >
           {item.author.charAt(0)}
         </div>
@@ -156,6 +160,7 @@ export function TestimonialsSection({
   lang,
   show_ratings = true,
   variantStyle,
+  show_gradient = true,
 }: {
   title?: string;
   items?: TestimonialItem[];
@@ -164,6 +169,7 @@ export function TestimonialsSection({
   lang?: string;
   show_ratings?: boolean;
   variantStyle: VariantStyle;
+  show_gradient?: boolean;
 }) {
   if (!items?.length) return null;
 
@@ -198,9 +204,9 @@ export function TestimonialsSection({
               case "quote":
                 return <QuoteTestimonial key={i} item={item} colors={colors} show_ratings={show_ratings} delay={i * 80} />;
               case "minimal":
-                return <MinimalTestimonial key={i} item={item} colors={colors} show_ratings={show_ratings} delay={i * 80} />;
+                return <MinimalTestimonial key={i} item={item} colors={colors} show_ratings={show_ratings} delay={i * 80} show_gradient={show_gradient} />;
               default:
-                return <CardTestimonial key={i} item={item} colors={colors} variantStyle={variantStyle} show_ratings={show_ratings} delay={i * 80} />;
+                return <CardTestimonial key={i} item={item} colors={colors} variantStyle={variantStyle} show_ratings={show_ratings} delay={i * 80} show_gradient={show_gradient} />;
             }
           })}
         </div>

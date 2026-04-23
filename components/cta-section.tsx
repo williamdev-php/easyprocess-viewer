@@ -171,6 +171,7 @@ export function CTASection({
   colors,
   theme,
   show_button = true,
+  show_gradient = true,
   variantStyle,
 }: {
   title?: string;
@@ -179,6 +180,7 @@ export function CTASection({
   colors: Colors;
   theme: Theme;
   show_button?: boolean;
+  show_gradient?: boolean;
   variantStyle: VariantStyle;
 }) {
   if (!title) return null;
@@ -191,17 +193,21 @@ export function CTASection({
       }}
     >
       {/* Background layers */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background: `
-            radial-gradient(ellipse 70% 50% at 80% 20%, ${adjustColor(colors.primary, 25)} 0%, transparent 60%),
-            radial-gradient(ellipse 60% 70% at 20% 80%, ${colors.secondary} 0%, transparent 50%),
-            linear-gradient(160deg, ${colors.primary} 0%, ${adjustColor(colors.secondary, -25)} 100%)
-          `,
-        }}
-      />
-      {variantStyle.showDecorations && (
+      {show_gradient ? (
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `
+              radial-gradient(ellipse 70% 50% at 80% 20%, ${adjustColor(colors.primary, 25)} 0%, transparent 60%),
+              radial-gradient(ellipse 60% 70% at 20% 80%, ${colors.secondary} 0%, transparent 50%),
+              linear-gradient(160deg, ${colors.primary} 0%, ${adjustColor(colors.secondary, -25)} 100%)
+            `,
+          }}
+        />
+      ) : (
+        <div className="absolute inset-0" style={{ background: colors.primary }} />
+      )}
+      {show_gradient && variantStyle.showDecorations && (
         <>
           <div
             className="absolute inset-0 opacity-[0.03]"

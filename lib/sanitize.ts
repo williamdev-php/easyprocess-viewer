@@ -21,6 +21,7 @@ export function limitSectionArrays(data: Record<string, unknown>): void {
     ["pricing", "tiers"],
     ["logo_cloud", "logos"],
     ["custom_content", "blocks"],
+    ["ranking", "items"],
   ];
   for (const [section, field] of arrayFields) {
     const sec = data[section];

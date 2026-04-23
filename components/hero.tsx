@@ -18,6 +18,8 @@ export function Hero({
   theme,
   lang,
   show_cta = true,
+  fullscreen = true,
+  show_gradient = true,
   variantStyle,
 }: {
   headline: string;
@@ -28,6 +30,8 @@ export function Hero({
   theme: Theme;
   lang?: string;
   show_cta?: boolean;
+  fullscreen?: boolean;
+  show_gradient?: boolean;
   variantStyle: VariantStyle;
 }) {
   const bgImg = sanitizeImageUrl(background_image ?? undefined);
@@ -36,7 +40,7 @@ export function Hero({
 
   return (
     <section
-      className="relative flex min-h-screen items-center justify-center overflow-hidden px-5 sm:px-8"
+      className={`relative flex ${fullscreen ? "min-h-screen" : "min-h-[60vh]"} items-center justify-center overflow-hidden px-5 sm:px-8`}
       style={{
         background: bgImg ? "transparent" : colors.primary,
       }}
@@ -53,41 +57,52 @@ export function Hero({
             quality={75}
             className="object-cover"
           />
-          <div
-            className="absolute inset-0 z-[1]"
-            style={{
-              background: "linear-gradient(170deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.35) 50%, rgba(0,0,0,0.5) 100%)",
-            }}
-          />
+          {show_gradient && (
+            <div
+              className="absolute inset-0 z-[1]"
+              style={{
+                background: "linear-gradient(170deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.35) 50%, rgba(0,0,0,0.5) 100%)",
+              }}
+            />
+          )}
+          {!show_gradient && (
+            <div className="absolute inset-0 z-[1] bg-black/40" />
+          )}
         </>
       )}
       {/* Animated gradient mesh (no-image variant) */}
       {!bgImg && (
         <>
-          <div
-            className="absolute inset-0"
-            style={{
-              background: `
-                radial-gradient(ellipse 80% 60% at 10% 90%, ${colors.secondary} 0%, transparent 60%),
-                radial-gradient(ellipse 60% 80% at 85% 20%, ${adjustColor(colors.primary, 30)} 0%, transparent 50%),
-                radial-gradient(ellipse 50% 50% at 50% 50%, ${colors.primary} 0%, transparent 80%),
-                linear-gradient(160deg, ${colors.primary} 0%, ${adjustColor(colors.secondary, -25)} 100%)
-              `,
-            }}
-          />
+          {show_gradient ? (
+            <div
+              className="absolute inset-0"
+              style={{
+                background: `
+                  radial-gradient(ellipse 80% 60% at 10% 90%, ${colors.secondary} 0%, transparent 60%),
+                  radial-gradient(ellipse 60% 80% at 85% 20%, ${adjustColor(colors.primary, 30)} 0%, transparent 50%),
+                  radial-gradient(ellipse 50% 50% at 50% 50%, ${colors.primary} 0%, transparent 80%),
+                  linear-gradient(160deg, ${colors.primary} 0%, ${adjustColor(colors.secondary, -25)} 100%)
+                `,
+              }}
+            />
+          ) : (
+            <div className="absolute inset-0" style={{ background: colors.primary }} />
+          )}
           {/* Subtle grid overlay */}
-          <div
-            className="absolute inset-0 opacity-[0.04]"
-            style={{
-              backgroundImage: `
-                linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)
-              `,
-              backgroundSize: "64px 64px",
-            }}
-          />
+          {show_gradient && (
+            <div
+              className="absolute inset-0 opacity-[0.04]"
+              style={{
+                backgroundImage: `
+                  linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px),
+                  linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)
+                `,
+                backgroundSize: "64px 64px",
+              }}
+            />
+          )}
           {/* Large glow orbs */}
-          {variantStyle.showDecorations && (
+          {show_gradient && variantStyle.showDecorations && (
             <>
               <div
                 className="absolute -top-40 right-1/4 h-[600px] w-[600px] rounded-full opacity-20 blur-[120px]"
@@ -171,12 +186,14 @@ export function Hero({
       </div>
 
       {/* Bottom gradient fade */}
-      <div
-        className="absolute inset-x-0 bottom-0 h-40"
-        style={{
-          background: `linear-gradient(to top, ${colors.background} 0%, ${colors.background}80 40%, transparent 100%)`,
-        }}
-      />
+      {show_gradient && (
+        <div
+          className="absolute inset-x-0 bottom-0 h-40"
+          style={{
+            background: `linear-gradient(to top, ${colors.background} 0%, ${colors.background}80 40%, transparent 100%)`,
+          }}
+        />
+      )}
 
       {/* Scroll indicator */}
       <div className="absolute inset-x-0 bottom-8 z-10 flex justify-center">

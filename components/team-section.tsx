@@ -16,12 +16,14 @@ function CardTeamMember({
   variantStyle,
   delay,
   totalMembers,
+  show_gradient = true,
 }: {
   member: TeamMember;
   colors: Colors;
   variantStyle: VariantStyle;
   delay: number;
   totalMembers: number;
+  show_gradient?: boolean;
 }) {
   const safeImg = member.image ? sanitizeImageUrl(member.image) : null;
 
@@ -51,7 +53,7 @@ function CardTeamMember({
           <div
             className="flex aspect-[3/4] items-center justify-center"
             style={{
-              background: `linear-gradient(135deg, ${mixColor(colors.primary, colors.background, 0.85)}, ${mixColor(colors.secondary, colors.background, 0.85)})`,
+              background: show_gradient ? `linear-gradient(135deg, ${mixColor(colors.primary, colors.background, 0.85)}, ${mixColor(colors.secondary, colors.background, 0.85)})` : mixColor(colors.primary, colors.background, 0.85),
             }}
           >
             <span className="text-5xl font-bold text-white/60">
@@ -87,11 +89,13 @@ function HorizontalTeamMember({
   colors,
   variantStyle,
   delay,
+  show_gradient = true,
 }: {
   member: TeamMember;
   colors: Colors;
   variantStyle: VariantStyle;
   delay: number;
+  show_gradient?: boolean;
 }) {
   const safeImg = member.image ? sanitizeImageUrl(member.image) : null;
 
@@ -121,7 +125,7 @@ function HorizontalTeamMember({
           <div
             className={`flex h-20 w-20 shrink-0 items-center justify-center ${variantStyle.iconRadius}`}
             style={{
-              background: `linear-gradient(135deg, ${mixColor(colors.primary, colors.background, 0.85)}, ${mixColor(colors.secondary, colors.background, 0.85)})`,
+              background: show_gradient ? `linear-gradient(135deg, ${mixColor(colors.primary, colors.background, 0.85)}, ${mixColor(colors.secondary, colors.background, 0.85)})` : mixColor(colors.primary, colors.background, 0.85),
             }}
           >
             <span className="text-2xl font-bold text-white/60">{member.name.charAt(0)}</span>
@@ -154,10 +158,12 @@ function MinimalTeamMember({
   member,
   colors,
   delay,
+  show_gradient = true,
 }: {
   member: TeamMember;
   colors: Colors;
   delay: number;
+  show_gradient?: boolean;
 }) {
   const safeImg = member.image ? sanitizeImageUrl(member.image) : null;
 
@@ -181,7 +187,7 @@ function MinimalTeamMember({
           <div
             className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full"
             style={{
-              background: `linear-gradient(135deg, ${mixColor(colors.primary, colors.background, 0.85)}, ${mixColor(colors.secondary, colors.background, 0.85)})`,
+              background: show_gradient ? `linear-gradient(135deg, ${mixColor(colors.primary, colors.background, 0.85)}, ${mixColor(colors.secondary, colors.background, 0.85)})` : mixColor(colors.primary, colors.background, 0.85),
             }}
           >
             <span className="text-3xl font-bold text-white/60">{member.name.charAt(0)}</span>
@@ -208,6 +214,7 @@ export function TeamSection({
   theme,
   lang,
   variantStyle,
+  show_gradient = true,
 }: {
   title?: string;
   subtitle?: string;
@@ -216,6 +223,7 @@ export function TeamSection({
   theme: Theme;
   lang?: string;
   variantStyle: VariantStyle;
+  show_gradient?: boolean;
 }) {
   if (!members?.length) return null;
 
@@ -263,11 +271,11 @@ export function TeamSection({
           {members.map((m, i) => {
             switch (variantStyle.teamStyle) {
               case "horizontal":
-                return <HorizontalTeamMember key={i} member={m} colors={colors} variantStyle={variantStyle} delay={i * 80} />;
+                return <HorizontalTeamMember key={i} member={m} colors={colors} variantStyle={variantStyle} delay={i * 80} show_gradient={show_gradient} />;
               case "minimal":
-                return <MinimalTeamMember key={i} member={m} colors={colors} delay={i * 80} />;
+                return <MinimalTeamMember key={i} member={m} colors={colors} delay={i * 80} show_gradient={show_gradient} />;
               default:
-                return <CardTeamMember key={i} member={m} colors={colors} variantStyle={variantStyle} delay={i * 80} totalMembers={members.length} />;
+                return <CardTeamMember key={i} member={m} colors={colors} variantStyle={variantStyle} delay={i * 80} totalMembers={members.length} show_gradient={show_gradient} />;
             }
           })}
         </div>

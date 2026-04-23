@@ -28,6 +28,7 @@ export function ServicesSection({
   siteId,
   lang,
   variantStyle,
+  show_gradient = true,
 }: {
   title?: string;
   subtitle?: string;
@@ -38,6 +39,7 @@ export function ServicesSection({
   siteId?: string;
   lang?: string;
   variantStyle: VariantStyle;
+  show_gradient?: boolean;
 }) {
   if (!items?.length) return null;
 
@@ -89,7 +91,7 @@ export function ServicesSection({
                   ...borderStyle,
                 }}
               >
-                {variantStyle.showDecorations && (
+                {show_gradient && variantStyle.showDecorations && (
                   <div
                     className="absolute -right-12 -top-12 h-32 w-32 rounded-full opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-100"
                     style={{ background: colors.primary }}
@@ -100,7 +102,9 @@ export function ServicesSection({
                   <div
                     className={`mb-5 flex items-center justify-center ${variantStyle.iconRadius} ${variantStyle.iconSize}`}
                     style={{
-                      background: `linear-gradient(135deg, ${mixColor(colors.primary, colors.background, 0.88)}, ${mixColor(colors.accent, colors.background, 0.85)})`,
+                      background: show_gradient
+                        ? `linear-gradient(135deg, ${mixColor(colors.primary, colors.background, 0.88)}, ${mixColor(colors.accent, colors.background, 0.85)})`
+                        : mixColor(colors.primary, colors.background, 0.88),
                     }}
                   >
                     <svg
