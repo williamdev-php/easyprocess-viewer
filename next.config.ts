@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
-const editorOrigin = process.env.NEXT_PUBLIC_EDITOR_ORIGIN || process.env.FRONTEND_URL || "http://localhost:3000";
+const editorOrigin = (() => {
+  const raw = process.env.NEXT_PUBLIC_EDITOR_ORIGIN || process.env.FRONTEND_URL || "http://localhost:3000";
+  // Ensure the origin always has a protocol (FRONTEND_URL may be bare domain)
+  if (raw && !raw.startsWith("http")) return `https://${raw}`;
+  return raw;
+})();
 
 const nextConfig: NextConfig = {
   // Allow images from any HTTPS domain (generated sites have images from various sources).
