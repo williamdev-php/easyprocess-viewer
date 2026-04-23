@@ -55,6 +55,13 @@ export function PreviewShell({ initialData, siteId }: Props) {
     const allowedOrigins = [
       process.env.NEXT_PUBLIC_EDITOR_ORIGIN,
       process.env.NEXT_PUBLIC_FRONTEND_URL,
+      // Hardcoded production editor origins as fallback — these must always
+      // be allowed so the preview iframe works even when env vars are missing
+      // or still set to localhost in a production build.
+      "https://qvicko.com",
+      "https://www.qvicko.com",
+      "https://qvicko.se",
+      "https://www.qvicko.se",
       window.location.origin,
     ].filter(Boolean) as string[];
 
@@ -71,8 +78,18 @@ export function PreviewShell({ initialData, siteId }: Props) {
 
     window.addEventListener("message", handleMessage);
 
-    // Tell the parent we're ready to receive data
-    const targetOrigin = allowedOrigins[0] || window.location.origin;
+    // Determine the actual parent origin from document.referrer so
+    // PREVIEW_READY reaches the editor even when env vars are wrong.
+    let targetOrigin = allowedOrigins[0] || "*";
+    try {
+      if (document.referrer) {
+        const referrerOrigin = new URL(document.referrer).origin;
+        if (allowedOrigins.includes(referrerOrigin)) {
+          targetOrigin = referrerOrigin;
+        }
+      }
+    } catch { /* ignore malformed referrer */ }
+
     try {
       window.parent.postMessage({ type: "PREVIEW_READY" }, targetOrigin);
     } catch { /* not in iframe */ }
