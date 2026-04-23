@@ -144,6 +144,8 @@ export default async function SiteLayout({ params, children }: Props) {
         <DraftBanner
           createdAt={siteResponse.created_at ?? undefined}
           lang={lang}
+          claimToken={siteResponse.claim_token}
+          siteId={siteId}
         />
       )}
       {customFooterRenderer

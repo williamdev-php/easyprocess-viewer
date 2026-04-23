@@ -19,9 +19,11 @@ const translations = {
 interface DraftBannerProps {
   createdAt?: string;
   lang?: string;
+  claimToken?: string | null;
+  siteId: string;
 }
 
-export function DraftBanner({ createdAt, lang }: DraftBannerProps) {
+export function DraftBanner({ createdAt, lang, claimToken, siteId }: DraftBannerProps) {
   const t = translations[lang === "en" ? "en" : "sv"];
 
   let daysRemaining = DRAFT_LIFETIME_DAYS;
@@ -30,6 +32,11 @@ export function DraftBanner({ createdAt, lang }: DraftBannerProps) {
     const expires = new Date(created.getTime() + DRAFT_LIFETIME_DAYS * 24 * 60 * 60 * 1000);
     daysRemaining = Math.max(0, Math.ceil((expires.getTime() - Date.now()) / (24 * 60 * 60 * 1000)));
   }
+
+  // Unclaimed site → showcase/claim page; Claimed site → login with return to dashboard
+  const activateHref = claimToken
+    ? `${FRONTEND_URL}/claim?token=${encodeURIComponent(claimToken)}`
+    : `${FRONTEND_URL}/login?redirect=${encodeURIComponent(`/dashboard/sites/${siteId}/general`)}`;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50">
@@ -56,7 +63,7 @@ export function DraftBanner({ createdAt, lang }: DraftBannerProps) {
         </div>
 
         <a
-          href={FRONTEND_URL}
+          href={activateHref}
           className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-all hover:scale-105"
           style={{
             background: "#fff",
