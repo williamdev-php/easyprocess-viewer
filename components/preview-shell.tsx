@@ -55,9 +55,6 @@ export function PreviewShell({ initialData, siteId }: Props) {
     const allowedOrigins = [
       process.env.NEXT_PUBLIC_EDITOR_ORIGIN,
       process.env.NEXT_PUBLIC_FRONTEND_URL,
-      // Hardcoded production editor origins as fallback — these must always
-      // be allowed so the preview iframe works even when env vars are missing
-      // or still set to localhost in a production build.
       "https://qvicko.com",
       "https://www.qvicko.com",
       "https://qvicko.se",
@@ -65,8 +62,15 @@ export function PreviewShell({ initialData, siteId }: Props) {
       window.location.origin,
     ].filter(Boolean) as string[];
 
+    function isAllowedOrigin(origin: string) {
+      if (allowedOrigins.includes(origin)) return true;
+      // Allow localhost on any port for local development
+      if (origin.startsWith("http://localhost:")) return true;
+      return false;
+    }
+
     function handleMessage(event: MessageEvent) {
-      if (!allowedOrigins.includes(event.origin)) return;
+      if (!isAllowedOrigin(event.origin)) return;
 
       if (event.data?.type === "SITE_DATA_UPDATE" && event.data.siteData) {
         if (!parentOriginRef.current) {
@@ -78,13 +82,13 @@ export function PreviewShell({ initialData, siteId }: Props) {
 
     window.addEventListener("message", handleMessage);
 
-    // Determine the actual parent origin from document.referrer so
-    // PREVIEW_READY reaches the editor even when env vars are wrong.
-    let targetOrigin = allowedOrigins[0] || "*";
+    // Send PREVIEW_READY to the parent. Use document.referrer to find
+    // the actual parent origin, falling back to "*" so it always arrives.
+    let targetOrigin = "*";
     try {
       if (document.referrer) {
         const referrerOrigin = new URL(document.referrer).origin;
-        if (allowedOrigins.includes(referrerOrigin)) {
+        if (isAllowedOrigin(referrerOrigin)) {
           targetOrigin = referrerOrigin;
         }
       }
