@@ -312,7 +312,6 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
       const ctx = { colors, theme, variantStyle, lang, siteId, data };
       return (
         <>
-          <PageHeader title={pageObj.title} colors={colors} theme={theme} variantStyle={variantStyle} />
           {pageObj.sections.map((section, i) => {
             const node = renderSectionByType(section.type, section.data, ctx);
             if (!node) return null;

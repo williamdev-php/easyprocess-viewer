@@ -37,12 +37,7 @@ export default async function FAQPage({ params }: Props) {
   if (!data.faq?.items?.length) {
     const page = data.pages?.find(p => p.slug === "faq" && !p.parent_slug);
     if (page) {
-      return (
-        <>
-          <PageHeader title={page.title} colors={colors} theme={theme} variantStyle={variantStyle} />
-          <DynamicPageRenderer page={page} siteData={data} colors={colors} theme={theme} variantStyle={variantStyle} />
-        </>
-      );
+      return <DynamicPageRenderer page={page} siteData={data} colors={colors} theme={theme} variantStyle={variantStyle} />;
     }
     return (
       <>

@@ -43,12 +43,7 @@ export default async function AboutPage({ params }: Props) {
       const colors = resolveColors(data);
       const theme = getTheme(data.theme);
       const variantStyle = getVariantStyle(data.style_variant);
-      return (
-        <>
-          <PageHeader title={page.title} colors={colors} theme={theme} variantStyle={variantStyle} />
-          <DynamicPageRenderer page={page} siteData={data} colors={colors} theme={theme} variantStyle={variantStyle} />
-        </>
-      );
+      return <DynamicPageRenderer page={page} siteData={data} colors={colors} theme={theme} variantStyle={variantStyle} />;
     }
     notFound();
   }

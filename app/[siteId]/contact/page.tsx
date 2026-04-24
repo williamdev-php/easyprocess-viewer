@@ -37,12 +37,7 @@ export default async function ContactPage({ params }: Props) {
   if (!biz?.email && !biz?.phone && !data.contact) {
     const page = data.pages?.find(p => p.slug === "contact" && !p.parent_slug);
     if (page) {
-      return (
-        <>
-          <PageHeader title={page.title} colors={colors} theme={theme} variantStyle={variantStyle} />
-          <DynamicPageRenderer page={page} siteData={data} colors={colors} theme={theme} variantStyle={variantStyle} />
-        </>
-      );
+      return <DynamicPageRenderer page={page} siteData={data} colors={colors} theme={theme} variantStyle={variantStyle} />;
     }
     notFound();
   }

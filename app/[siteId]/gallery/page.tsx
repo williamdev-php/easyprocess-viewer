@@ -37,12 +37,7 @@ export default async function GalleryPage({ params }: Props) {
   if (!data.gallery?.images?.length) {
     const page = data.pages?.find(p => p.slug === "gallery" && !p.parent_slug);
     if (page) {
-      return (
-        <>
-          <PageHeader title={page.title} colors={colors} theme={theme} variantStyle={variantStyle} />
-          <DynamicPageRenderer page={page} siteData={data} colors={colors} theme={theme} variantStyle={variantStyle} />
-        </>
-      );
+      return <DynamicPageRenderer page={page} siteData={data} colors={colors} theme={theme} variantStyle={variantStyle} />;
     }
     return (
       <>

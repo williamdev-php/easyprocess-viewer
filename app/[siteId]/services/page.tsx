@@ -47,12 +47,7 @@ export default async function ServicesPage({ params }: Props) {
     // Fallback: check if there's a page with slug "services"
     const page = data.pages?.find(p => p.slug === "services" && !p.parent_slug);
     if (page) {
-      return (
-        <>
-          <PageHeader title={page.title} colors={colors} theme={theme} variantStyle={variantStyle} />
-          <DynamicPageRenderer page={page} siteData={data} colors={colors} theme={theme} variantStyle={variantStyle} />
-        </>
-      );
+      return <DynamicPageRenderer page={page} siteData={data} colors={colors} theme={theme} variantStyle={variantStyle} />;
     }
     return (
       <>

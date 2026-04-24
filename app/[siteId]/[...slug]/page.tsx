@@ -72,12 +72,6 @@ export default async function DynamicPage({ params }: Props) {
 
   return (
     <>
-      <PageHeader
-        title={page.title}
-        colors={colors}
-        theme={theme}
-        variantStyle={variantStyle}
-      />
       {page.sections.length > 0 ? (
         <DynamicPageRenderer
           page={page}
