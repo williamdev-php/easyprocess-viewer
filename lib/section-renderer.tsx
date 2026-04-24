@@ -31,6 +31,7 @@ import { LogoCloudSection } from "@/components/logo-cloud-section";
 import { CustomContentSection } from "@/components/custom-content-section";
 import { BannerSection } from "@/components/banner-section";
 import { RankingSection } from "@/components/ranking-section";
+import { PageContentSection } from "@/components/page-content-section";
 
 export interface SectionRenderContext {
   colors: Colors;
@@ -130,6 +131,8 @@ export function renderSectionByType(
       return <BannerSection {...(sectionData as any)} colors={colors} theme={theme} variantStyle={variantStyle} animation={anim} />;
     case "ranking":
       return <RankingSection {...(sectionData as any)} colors={colors} theme={theme} variantStyle={variantStyle} animation={anim} />;
+    case "page_content":
+      return <PageContentSection {...(sectionData as any)} colors={colors} theme={theme} variantStyle={variantStyle} animation={anim} />;
     default:
       return null;
   }

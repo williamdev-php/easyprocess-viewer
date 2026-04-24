@@ -158,3 +158,55 @@ export async function fetchBlogCategories(
   }
 }
 
+// ---------------------------------------------------------------------------
+// Bookings
+// ---------------------------------------------------------------------------
+
+export async function fetchBookingServices(siteId: string) {
+  try {
+    const res = await fetchWithTimeout(
+      `${API_URL}/api/sites/${siteId}/bookings/services`,
+      { next: { revalidate: 60 } },
+    );
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchBookingFormFields(siteId: string) {
+  try {
+    const res = await fetchWithTimeout(
+      `${API_URL}/api/sites/${siteId}/bookings/form-fields`,
+      { next: { revalidate: 60 } },
+    );
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchBookingPaymentMethods(siteId: string) {
+  try {
+    const res = await fetchWithTimeout(
+      `${API_URL}/api/sites/${siteId}/bookings/payment-methods`,
+      { next: { revalidate: 60 } },
+    );
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function submitBooking(siteId: string, data: Record<string, unknown>) {
+  const res = await fetch(`${API_URL}/api/sites/${siteId}/bookings`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+

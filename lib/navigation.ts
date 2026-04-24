@@ -43,6 +43,9 @@ export function buildNavigation(data: SiteData, siteId: string, installedApps?: 
   if (installedApps?.includes("blog")) {
     items.push({ label: t("nav.blog", lang), href: `${base}/blog` });
   }
+  if (installedApps?.includes("bookings")) {
+    items.push({ label: t("nav.bookings", lang), href: `${base}/bookings` });
+  }
 
   // Multi-page support: add top-level pages to nav
   if (data.pages?.length) {

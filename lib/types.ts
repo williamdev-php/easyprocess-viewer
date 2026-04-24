@@ -265,6 +265,10 @@ export interface SiteData {
     subtitle?: string;
     items?: RankingItem[];
   } | null;
+  page_content?: {
+    title?: string;
+    content?: string;
+  } | null;
   extra_sections?: Record<string, ExtraSection>;
   section_settings?: Record<string, SectionSettings>;
   seo?: {
@@ -359,4 +363,36 @@ export interface SiteMeta {
   structured_data: Record<string, unknown>;
   robots: string;
   head_scripts?: HeadScripts | null;
+}
+
+// ---------------------------------------------------------------------------
+// Booking types
+// ---------------------------------------------------------------------------
+
+export interface BookingService {
+  id: string;
+  name: string;
+  description: string | null;
+  duration_minutes: number;
+  price: number;
+  currency: string;
+}
+
+export interface BookingFormField {
+  id: string;
+  label: string;
+  field_type: string;
+  placeholder: string | null;
+  is_required: boolean;
+  options: string[] | null;
+  sort_order: number;
+}
+
+export interface BookingPaymentMethodsConfig {
+  stripe_connect_enabled: boolean;
+  on_site_enabled: boolean;
+  klarna_enabled: boolean;
+  swish_enabled: boolean;
+  stripe_publishable_key?: string;
+  connected_account_id?: string;
 }
