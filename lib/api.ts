@@ -36,7 +36,7 @@ export async function fetchSiteData(siteId: string): Promise<SiteData | null> {
 export async function fetchSiteResponse(siteId: string): Promise<SiteResponse | null> {
   try {
     const res = await fetchWithTimeout(`${API_URL}/api/sites/${siteId}`, {
-      next: { revalidate: 60 },
+      next: { revalidate: 3600 },
     });
     if (!res.ok) return null;
     const data = await res.json();
