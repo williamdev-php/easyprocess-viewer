@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import DOMPurify from "isomorphic-dompurify";
 import { fetchBlogPost, fetchSiteMeta } from "@/lib/api";
+import { sanitizeImageUrl } from "@/lib/sanitize";
 import { t } from "@/lib/i18n";
 
 interface Props {
@@ -88,10 +89,10 @@ export default async function BlogPostPage({ params }: Props) {
         </div>
 
         {/* Featured image */}
-        {post.featured_image && (
+        {sanitizeImageUrl(post.featured_image) && (
           <div className="mt-8 overflow-hidden rounded-2xl">
             <img
-              src={post.featured_image}
+              src={sanitizeImageUrl(post.featured_image)!}
               alt={post.title}
               className="w-full object-cover"
               loading="eager"

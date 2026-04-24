@@ -62,13 +62,14 @@ const nextConfig: NextConfig = {
       },
       {
         // All other pages — allow Google Fonts + iframe embedding from editor
+        // unsafe-inline needed for user analytics scripts; unsafe-eval NOT needed here
         source: "/(.*)",
         headers: [
           {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+              "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://bat.bing.com https://clarity.ms https://www.clarity.ms https://snap.licdn.com https://analytics.tiktok.com https://static.hotjar.com https://plausible.io https://cdn.matomo.cloud https://client.crisp.chat https://widget.intercom.io https://cdn.cookielaw.org https://js.hs-scripts.com https://js.hs-analytics.net",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com data:",

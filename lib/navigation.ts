@@ -1,5 +1,6 @@
 import type { SiteData, NavItem } from "./types";
 import { t } from "./i18n";
+import { sanitizeUrl } from "./sanitize";
 
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
@@ -10,12 +11,14 @@ const IS_PRODUCTION = process.env.NODE_ENV === "production";
 export function buildNavigation(data: SiteData, siteId: string, installedApps?: string[]): NavItem[] {
   const base = IS_PRODUCTION ? "" : `/${siteId}`;
 
-  // Custom header nav — use as-is (prefix hrefs with base in dev)
+  // Custom header nav — sanitize hrefs to prevent javascript: links
   if (data.header_nav?.length) {
-    return data.header_nav.map((item) => ({
-      label: item.label,
-      href: base && !item.href.startsWith("http") ? `${base}${item.href}` : item.href,
-    }));
+    return data.header_nav
+      .filter((item) => sanitizeUrl(item.href))
+      .map((item) => ({
+        label: item.label,
+        href: base && !item.href.startsWith("http") ? `${base}${sanitizeUrl(item.href)!}` : sanitizeUrl(item.href)!,
+      }));
   }
 
   // Auto-generated nav (backward compatible)
@@ -62,10 +65,12 @@ export function buildFooterNavigation(data: SiteData, siteId: string, installedA
   const base = IS_PRODUCTION ? "" : `/${siteId}`;
 
   if (data.footer_nav?.length) {
-    return data.footer_nav.map((item) => ({
-      label: item.label,
-      href: base && !item.href.startsWith("http") ? `${base}${item.href}` : item.href,
-    }));
+    return data.footer_nav
+      .filter((item) => sanitizeUrl(item.href))
+      .map((item) => ({
+        label: item.label,
+        href: base && !item.href.startsWith("http") ? `${base}${sanitizeUrl(item.href)!}` : sanitizeUrl(item.href)!,
+      }));
   }
 
   // Fall back to header nav

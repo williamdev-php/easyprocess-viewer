@@ -7,6 +7,7 @@ import { mixColor } from "@/lib/colors";
 import type { Colors } from "@/lib/types";
 import type { Theme } from "@/lib/themes";
 import type { VariantStyle } from "@/lib/style-variants";
+import { sanitizeUrl } from "@/lib/sanitize";
 
 interface PricingTier {
   name: string;
@@ -98,9 +99,9 @@ export function PricingSection({
                     ))}
                   </ul>
                 )}
-                {tier.cta && (
+                {tier.cta && sanitizeUrl(tier.cta.href) && (
                   <a
-                    href={tier.cta.href}
+                    href={sanitizeUrl(tier.cta.href)!}
                     className="mt-6 block rounded-xl px-4 py-3 text-center text-sm font-semibold transition hover:opacity-90"
                     style={{
                       backgroundColor: tier.highlighted ? primary : "transparent",

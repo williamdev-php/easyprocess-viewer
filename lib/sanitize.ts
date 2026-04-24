@@ -54,15 +54,18 @@ export function limitSectionArrays(data: Record<string, unknown>): void {
  */
 export function sanitizeUrl(url: string | undefined | null): string | undefined {
   if (!url) return undefined;
-  const trimmed = url.trim().toLowerCase();
+  // Strip control characters (tabs, newlines, null bytes) that could bypass protocol checks
+  const cleaned = url.replace(/[\x00-\x1f\x7f]/g, "").trim();
+  if (!cleaned) return undefined;
+  const lower = cleaned.toLowerCase();
   if (
-    trimmed.startsWith("javascript:") ||
-    trimmed.startsWith("data:") ||
-    trimmed.startsWith("vbscript:")
+    lower.startsWith("javascript:") ||
+    lower.startsWith("data:") ||
+    lower.startsWith("vbscript:")
   ) {
     return undefined;
   }
-  return url;
+  return cleaned;
 }
 
 /**
@@ -108,14 +111,17 @@ export function sanitizePhone(phone: string | undefined | null): string | undefi
  */
 export function sanitizeImageUrl(url: string | undefined | null): string | undefined {
   if (!url) return undefined;
-  const trimmed = url.trim().toLowerCase();
+  // Strip control characters before validation
+  const cleaned = url.replace(/[\x00-\x1f\x7f]/g, "").trim();
+  if (!cleaned) return undefined;
+  const lower = cleaned.toLowerCase();
   if (
-    trimmed.startsWith("http://") ||
-    trimmed.startsWith("https://") ||
-    trimmed.startsWith("/") ||
-    trimmed.startsWith(".")
+    lower.startsWith("http://") ||
+    lower.startsWith("https://") ||
+    lower.startsWith("/") ||
+    lower.startsWith(".")
   ) {
-    return url;
+    return cleaned;
   }
   return undefined;
 }

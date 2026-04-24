@@ -7,6 +7,7 @@ import { mixColor } from "@/lib/colors";
 import type { Colors } from "@/lib/types";
 import type { Theme } from "@/lib/themes";
 import type { VariantStyle } from "@/lib/style-variants";
+import { sanitizeImageUrl } from "@/lib/sanitize";
 
 interface LogoItem {
   name: string;
@@ -56,11 +57,13 @@ export function LogoCloudSection({
         )}
         <Animate animation={animation} delay={60}>
           <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-12">
-            {logos.map((logo, i) => (
+            {logos.map((logo, i) => {
+              const safeImgUrl = sanitizeImageUrl(logo.image_url);
+              return (
               <div key={i} className="flex flex-col items-center gap-2">
-                {logo.image_url ? (
+                {safeImgUrl ? (
                   <img
-                    src={logo.image_url}
+                    src={safeImgUrl}
                     alt={logo.name}
                     className="h-10 w-auto object-contain opacity-70 grayscale transition hover:opacity-100 hover:grayscale-0 sm:h-12"
                     loading="lazy"
@@ -74,7 +77,8 @@ export function LogoCloudSection({
                   </span>
                 )}
               </div>
-            ))}
+            );
+            })}
           </div>
         </Animate>
       </div>

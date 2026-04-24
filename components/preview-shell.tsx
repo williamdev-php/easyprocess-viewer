@@ -127,13 +127,15 @@ export function PreviewShell({ initialData, siteId }: Props) {
     if (headingFont && headingFont !== "Inter" && headingFont !== bodyFont) fontsToLoad.add(headingFont);
 
     for (const fontName of fontsToLoad) {
-      const safeFont = fontName.replace(/ /g, "+");
+      const sanitized = sanitizeFontFamily(fontName);
+      if (!sanitized) continue;
+      const safeFont = sanitized.replace(/ /g, "+");
       const id = `gfont-${safeFont}`;
       if (document.getElementById(id)) continue;
       const link = document.createElement("link");
       link.id = id;
       link.rel = "stylesheet";
-      link.href = `https://fonts.googleapis.com/css2?family=${safeFont}&display=swap`;
+      link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(sanitized)}&display=swap`;
       document.head.appendChild(link);
     }
   }, [data.branding?.fonts?.body, data.branding?.fonts?.heading]);
