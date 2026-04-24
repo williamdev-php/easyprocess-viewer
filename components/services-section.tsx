@@ -145,7 +145,7 @@ export function ServicesSection({
           <Reveal delay={300}>
             <div className="mt-14 text-center">
               <Link
-                href={`/${siteId}/services`}
+                href={process.env.NODE_ENV === "production" ? "/services" : `/${siteId}/services`}
                 className={`group inline-flex items-center gap-2.5 ${variantStyle.buttonRadius} px-8 py-4 text-sm font-semibold transition-all duration-300 hover:scale-[1.02] hover:brightness-110`}
                 style={{
                   background: colors.primary,

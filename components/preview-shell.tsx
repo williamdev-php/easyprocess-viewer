@@ -160,7 +160,9 @@ export function PreviewShell({ initialData, siteId }: Props) {
   })();
   const biz = data.business;
   const navItems = buildNavigation(data, siteId);
-  const ctaHref = (biz?.email || biz?.phone || data.contact) ? `/${siteId}/contact` : undefined;
+  const isProduction = process.env.NODE_ENV === "production";
+  const base = isProduction ? "" : `/${siteId}`;
+  const ctaHref = (biz?.email || biz?.phone || data.contact) ? `${base}/contact` : undefined;
 
   const getAnim = (key: string) =>
     (data.section_settings?.[key]?.animation as import("@/components/animate").AnimationType) || "fade-up";

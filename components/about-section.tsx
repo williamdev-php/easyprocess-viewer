@@ -152,7 +152,7 @@ export function AboutSection({
             {variant === "snippet" && siteId && (
               <Reveal delay={160}>
                 <Link
-                  href={`/${siteId}/about`}
+                  href={process.env.NODE_ENV === "production" ? "/about" : `/${siteId}/about`}
                   className="group mt-8 inline-flex items-center gap-2 text-sm font-semibold transition-colors hover:brightness-110"
                   style={{ color: colors.primary }}
                 >
