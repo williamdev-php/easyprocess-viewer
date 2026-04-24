@@ -41,6 +41,16 @@ export function buildNavigation(data: SiteData, siteId: string, installedApps?: 
     items.push({ label: t("nav.blog", lang), href: `${base}/blog` });
   }
 
+  // Multi-page support: add top-level pages to nav
+  if (data.pages?.length) {
+    const topPages = data.pages
+      .filter(p => !p.parent_slug && p.show_in_nav !== false)
+      .sort((a, b) => (a.nav_order ?? 0) - (b.nav_order ?? 0));
+    for (const page of topPages) {
+      items.push({ label: page.title, href: `${base}/${page.slug}` });
+    }
+  }
+
   return items;
 }
 

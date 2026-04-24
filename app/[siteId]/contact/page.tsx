@@ -8,6 +8,7 @@ import { t } from "@/lib/i18n";
 import { PageHeader } from "@/components/page-header";
 import { ContactSection } from "@/components/contact-section";
 import { EditablePageWrapper } from "@/components/editable-page-wrapper";
+import { DynamicPageRenderer } from "@/components/dynamic-page-renderer";
 
 interface Props {
   params: Promise<{ siteId: string }>;
@@ -27,13 +28,24 @@ export default async function ContactPage({ params }: Props) {
   const data = await fetchSiteData(siteId);
   if (!data) notFound();
 
-  const biz = data.business;
-  if (!biz?.email && !biz?.phone && !data.contact) notFound();
-
   const colors = resolveColors(data);
   const theme = getTheme(data.theme);
   const variantStyle = getVariantStyle(data.style_variant);
   const lang = data.meta?.language;
+
+  const biz = data.business;
+  if (!biz?.email && !biz?.phone && !data.contact) {
+    const page = data.pages?.find(p => p.slug === "contact" && !p.parent_slug);
+    if (page) {
+      return (
+        <>
+          <PageHeader title={page.title} colors={colors} theme={theme} variantStyle={variantStyle} />
+          <DynamicPageRenderer page={page} siteData={data} colors={colors} theme={theme} variantStyle={variantStyle} />
+        </>
+      );
+    }
+    notFound();
+  }
 
   return (
     <>

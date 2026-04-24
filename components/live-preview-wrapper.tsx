@@ -29,6 +29,8 @@ import { ErrorBoundary } from "@/components/error-boundary";
 import { t } from "@/lib/i18n";
 import { resolveVersion, getVersionRenderer } from "@/lib/version-registry";
 import type { RenderContext } from "@/lib/version-registry";
+import { renderSectionByType } from "@/lib/section-renderer";
+import { PageHeader } from "@/components/page-header";
 
 interface Props {
   initialData: SiteData;
@@ -76,6 +78,7 @@ function EditableSection({
 export function LivePreviewWrapper({ initialData, siteId }: Props) {
   const [data, setData] = useState<SiteData>(initialData);
   const [isEditing, setIsEditing] = useState(false);
+  const [activePage, setActivePage] = useState<string | null>(null);
 
   useEffect(() => {
     // Detect if we're inside an iframe (editor mode)
@@ -93,6 +96,9 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
 
       if (event.data?.type === "SITE_DATA_UPDATE" && event.data.siteData) {
         setData(event.data.siteData);
+        if ("activePage" in event.data) {
+          setActivePage(event.data.activePage ?? null);
+        }
       }
     }
     window.addEventListener("message", handleMessage);
@@ -292,6 +298,36 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
         return null;
     }
   };
+
+  // Multi-page preview: if activePage is set, render that page's sections
+  if (activePage && data.pages?.length) {
+    const pageObj = data.pages.find(p => {
+      if (activePage.includes("/")) {
+        const [parent, slug] = activePage.split("/");
+        return p.parent_slug === parent && p.slug === slug;
+      }
+      return p.slug === activePage && !p.parent_slug;
+    });
+    if (pageObj) {
+      const ctx = { colors, theme, variantStyle, lang, siteId, data };
+      return (
+        <>
+          <PageHeader title={pageObj.title} colors={colors} theme={theme} variantStyle={variantStyle} />
+          {pageObj.sections.map((section, i) => {
+            const node = renderSectionByType(section.type, section.data, ctx);
+            if (!node) return null;
+            return (
+              <ErrorBoundary sectionName={`${section.type}-${i}`} key={`${section.type}-${i}`}>
+                <EditableSection section={`__page_sec_${i}`} isEditing={isEditing}>
+                  {node}
+                </EditableSection>
+              </ErrorBoundary>
+            );
+          })}
+        </>
+      );
+    }
+  }
 
   return <>{sectionOrder.map(renderSection)}</>;
 }

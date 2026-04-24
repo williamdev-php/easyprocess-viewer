@@ -121,7 +121,12 @@ export default async function SiteLayout({ params, children }: Props) {
             ? `${bodyFont}, -apple-system, BlinkMacSystemFont, sans-serif`
             : `Inter, -apple-system, BlinkMacSystemFont, sans-serif`,
           background: colors.background,
-        }}
+          // CSS custom properties for branded 404 and child components
+          '--brand-primary': colors.primary,
+          '--brand-text': colors.text,
+          '--brand-bg': colors.background,
+        } as React.CSSProperties}
+        data-lang={lang}
       >
       {customNavRenderer
         ? customNavRenderer({ ...renderCtx, items: navItems, logoUrl: siteData.branding?.logo_url, businessName: biz?.name, ctaHref })

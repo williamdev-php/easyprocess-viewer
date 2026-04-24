@@ -8,6 +8,7 @@ import { t } from "@/lib/i18n";
 import { PageHeader } from "@/components/page-header";
 import { FAQSection } from "@/components/faq-section";
 import { EditablePageWrapper } from "@/components/editable-page-wrapper";
+import { DynamicPageRenderer } from "@/components/dynamic-page-renderer";
 
 interface Props {
   params: Promise<{ siteId: string }>;
@@ -34,6 +35,15 @@ export default async function FAQPage({ params }: Props) {
   const lang = data.meta?.language;
 
   if (!data.faq?.items?.length) {
+    const page = data.pages?.find(p => p.slug === "faq" && !p.parent_slug);
+    if (page) {
+      return (
+        <>
+          <PageHeader title={page.title} colors={colors} theme={theme} variantStyle={variantStyle} />
+          <DynamicPageRenderer page={page} siteData={data} colors={colors} theme={theme} variantStyle={variantStyle} />
+        </>
+      );
+    }
     return (
       <>
         <PageHeader

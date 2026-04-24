@@ -31,6 +31,8 @@ import { sanitizeFontFamily } from "@/lib/sanitize";
 import { buildNavigation } from "@/lib/navigation";
 import { resolveVersion, getVersionRenderer } from "@/lib/version-registry";
 import type { RenderContext } from "@/lib/version-registry";
+import { renderSectionByType } from "@/lib/section-renderer";
+import { PageHeader } from "@/components/page-header";
 
 interface Props {
   initialData: SiteData;
@@ -46,6 +48,7 @@ const DEFAULT_ORDER = [
 
 export function PreviewShell({ initialData, siteId }: Props) {
   const [data, setData] = useState<SiteData>(initialData);
+  const [activePage, setActivePage] = useState<string | null>(null);
   const parentOriginRef = useRef<string | null>(null);
 
   // ------------------------------------------------------------------
@@ -77,6 +80,10 @@ export function PreviewShell({ initialData, siteId }: Props) {
           parentOriginRef.current = event.origin;
         }
         setData(event.data.siteData);
+        // Handle active page for multi-page preview
+        if ("activePage" in event.data) {
+          setActivePage(event.data.activePage ?? null);
+        }
       }
     }
 
@@ -348,10 +355,51 @@ export function PreviewShell({ initialData, siteId }: Props) {
     }
   };
 
+  // Resolve active page for multi-page preview
+  const activePageObj = activePage ? data.pages?.find(p => {
+    if (activePage.includes("/")) {
+      const [parent, slug] = activePage.split("/");
+      return p.parent_slug === parent && p.slug === slug;
+    }
+    return p.slug === activePage && !p.parent_slug;
+  }) : null;
+
+  const renderPageSections = () => {
+    if (!activePageObj) return null;
+    const ctx = { colors, theme, variantStyle, lang, siteId, data };
+    return (
+      <>
+        <PageHeader title={activePageObj.title} colors={colors} theme={theme} variantStyle={variantStyle} />
+        {activePageObj.sections.map((section, i) => {
+          const node = renderSectionByType(section.type, section.data, ctx);
+          if (!node) return null;
+          return (
+            <ErrorBoundary sectionName={`${section.type}-${i}`} key={`${section.type}-${i}`}>
+              <div
+                onClick={(e) => {
+                  if ((e.target as HTMLElement).closest("a")) return;
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleSectionClick(`__page_sec_${i}`);
+                }}
+                className="relative cursor-pointer transition-all duration-150 hover:outline hover:outline-2 hover:outline-blue-400/60 hover:outline-offset-[-2px]"
+              >
+                <div className="pointer-events-none absolute top-2 right-2 z-50 rounded bg-blue-500 px-2 py-0.5 text-[10px] font-medium text-white opacity-0 transition-opacity [div:hover>&]:opacity-100 shadow-sm">
+                  Redigera
+                </div>
+                {node}
+              </div>
+            </ErrorBoundary>
+          );
+        })}
+      </>
+    );
+  };
+
   return (
     <div style={fontStyle}>
       <Nav items={navItems} colors={colors} theme={theme} logoUrl={data.branding?.logo_url} businessName={biz?.name} ctaHref={ctaHref} lang={lang} variantStyle={variantStyle} />
-      <main>{sectionOrder.map(renderSection)}</main>
+      <main>{activePageObj ? renderPageSections() : sectionOrder.map(renderSection)}</main>
       <Footer businessName={biz?.name} email={biz?.email} phone={biz?.phone} address={biz?.address} socialLinks={biz?.social_links} navItems={navItems} colors={colors} theme={theme} lang={lang} variantStyle={variantStyle} />
     </div>
   );

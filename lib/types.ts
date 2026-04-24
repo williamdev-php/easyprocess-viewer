@@ -272,6 +272,32 @@ export interface SiteData {
     robots?: string;
   };
   head_scripts?: HeadScripts | null;
+  pages?: PageSchema[] | null;
+}
+
+// ---------------------------------------------------------------------------
+// Multi-page types
+// ---------------------------------------------------------------------------
+
+export interface PageMeta {
+  title?: string;
+  description?: string;
+  og_image?: string | null;
+}
+
+export interface PageSection {
+  type: string;
+  data: Record<string, unknown>;
+}
+
+export interface PageSchema {
+  slug: string;
+  title: string;
+  meta?: PageMeta;
+  sections: PageSection[];
+  parent_slug?: string | null;
+  show_in_nav?: boolean;
+  nav_order?: number;
 }
 
 export interface NavItem {

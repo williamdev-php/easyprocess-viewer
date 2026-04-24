@@ -8,6 +8,7 @@ import { t } from "@/lib/i18n";
 import { PageHeader } from "@/components/page-header";
 import { ServicesSection } from "@/components/services-section";
 import { EditablePageWrapper } from "@/components/editable-page-wrapper";
+import { DynamicPageRenderer } from "@/components/dynamic-page-renderer";
 
 interface Props {
   params: Promise<{ siteId: string }>;
@@ -16,7 +17,16 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { siteId } = await params;
   const data = await fetchSiteData(siteId);
-  if (!data?.services) return {};
+  if (!data?.services) {
+    const page = data?.pages?.find(p => p.slug === "services" && !p.parent_slug);
+    if (page) {
+      return {
+        title: `${page.meta?.title || page.title} | ${data?.meta?.title || ""}`,
+        alternates: { canonical: `/services` },
+      };
+    }
+    return {};
+  }
   return {
     title: `${data.services.title || "Tjänster"} | ${data.meta?.title || ""}`,
     alternates: { canonical: `/services` },
@@ -34,6 +44,16 @@ export default async function ServicesPage({ params }: Props) {
   const lang = data.meta?.language;
 
   if (!data.services?.items?.length) {
+    // Fallback: check if there's a page with slug "services"
+    const page = data.pages?.find(p => p.slug === "services" && !p.parent_slug);
+    if (page) {
+      return (
+        <>
+          <PageHeader title={page.title} colors={colors} theme={theme} variantStyle={variantStyle} />
+          <DynamicPageRenderer page={page} siteData={data} colors={colors} theme={theme} variantStyle={variantStyle} />
+        </>
+      );
+    }
     return (
       <>
         <PageHeader
