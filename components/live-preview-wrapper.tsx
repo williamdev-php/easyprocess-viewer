@@ -25,6 +25,7 @@ const LogoCloudSection = dynamic(() => import("@/components/logo-cloud-section")
 const CustomContentSection = dynamic(() => import("@/components/custom-content-section").then(m => ({ default: m.CustomContentSection })));
 const BannerSection = dynamic(() => import("@/components/banner-section").then(m => ({ default: m.BannerSection })));
 const RankingSection = dynamic(() => import("@/components/ranking-section").then(m => ({ default: m.RankingSection })));
+const QuizSection = dynamic(() => import("@/components/quiz-section").then(m => ({ default: m.QuizSection })));
 const PageContentSection = dynamic(() => import("@/components/page-content-section").then(m => ({ default: m.PageContentSection })));
 import { ErrorBoundary } from "@/components/error-boundary";
 import { t } from "@/lib/i18n";
@@ -120,7 +121,7 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
     "hero", "about", "features", "stats", "services", "process",
     "gallery", "team", "testimonials", "faq", "cta", "contact",
     "pricing", "video", "logo_cloud", "custom_content", "banner",
-    "ranking", "page_content",
+    "ranking", "quiz", "page_content",
   ];
   const sectionOrder = (() => {
     const order = data.section_order;
@@ -294,6 +295,10 @@ export function LivePreviewWrapper({ initialData, siteId }: Props) {
       case "ranking":
         return wrap(
           <RankingSection {...sectionData as any} colors={colors} theme={theme} variantStyle={variantStyle} animation={getAnim(key)} />
+        );
+      case "quiz":
+        return wrap(
+          <QuizSection {...sectionData as any} colors={colors} theme={theme} variantStyle={variantStyle} />
         );
       case "page_content":
         return wrap(

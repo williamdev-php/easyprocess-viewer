@@ -100,6 +100,23 @@ export interface RankingItem {
   link?: CTAButton | null;
 }
 
+export interface QuizOption {
+  label: string;
+  next?: number;
+}
+
+export interface QuizStep {
+  question: string;
+  options: QuizOption[];
+  image?: string | null;
+}
+
+export interface QuizResult {
+  title: string;
+  description: string;
+  cta?: CTAButton | null;
+}
+
 export interface SectionSettings {
   animation?: string; // "fade-up" | "fade-in" | "slide-left" | "slide-right" | "scale" | "none"
   background_color?: string;
@@ -264,6 +281,13 @@ export interface SiteData {
     title?: string;
     subtitle?: string;
     items?: RankingItem[];
+  } | null;
+  quiz?: {
+    title?: string;
+    subtitle?: string;
+    steps?: QuizStep[];
+    results?: QuizResult[];
+    result_logic?: "score" | "first_match";
   } | null;
   page_content?: {
     title?: string;

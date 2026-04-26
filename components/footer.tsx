@@ -344,6 +344,14 @@ function MinimalFooter({
 export function Footer(props: FooterProps) {
   if (!props.businessName) return null;
 
+  // Hide footer when it would only show a home link and no useful contact info
+  const hasContact = !!(props.email || props.phone || props.address);
+  const hasSocial = Object.keys(props.socialLinks || {}).length > 0;
+  const meaningfulNavItems = props.navItems.filter(
+    (item) => item.href !== "/" && item.href !== ""
+  );
+  if (!hasContact && !hasSocial && meaningfulNavItems.length === 0) return null;
+
   switch (props.variantStyle.footerStyle) {
     case "centered":
       return <CenteredFooter {...props} />;
