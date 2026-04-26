@@ -59,7 +59,9 @@ export function buildNavigation(data: SiteData, siteId: string, installedApps?: 
       .sort((a, b) => (a.nav_order ?? 0) - (b.nav_order ?? 0));
 
     for (const page of topPages) {
-      items.push({ label: trimLabel(page.title), href: `${base}/${page.slug}` });
+      // Strip leading slashes from slug to prevent "//slug" → protocol-relative URL
+      const slug = page.slug.replace(/^\/+/, "");
+      items.push({ label: trimLabel(page.title), href: `${base}/${slug}` });
     }
   } else {
     // ── Mode 3: Legacy auto-generated nav (no pages) ────────────────

@@ -51,6 +51,10 @@ export function limitSectionArrays(data: Record<string, unknown>): void {
 
 /**
  * Sanitize a URL to prevent XSS via javascript:, data:, or vbscript: protocols.
+ *
+ * Also normalizes internal paths: bare slugs like "om-oss" become "/om-oss"
+ * to prevent the browser from treating them as relative URLs (which would
+ * navigate to e.g. "https://om-oss/" instead of the correct page).
  */
 export function sanitizeUrl(url: string | undefined | null): string | undefined {
   if (!url) return undefined;
@@ -65,7 +69,20 @@ export function sanitizeUrl(url: string | undefined | null): string | undefined 
   ) {
     return undefined;
   }
-  return cleaned;
+  // Already absolute, anchor, or protocol-relative — return as-is
+  if (
+    cleaned.startsWith("/") ||
+    cleaned.startsWith("#") ||
+    cleaned.startsWith("http://") ||
+    cleaned.startsWith("https://") ||
+    cleaned.startsWith("mailto:") ||
+    cleaned.startsWith("tel:")
+  ) {
+    return cleaned;
+  }
+  // Bare slug like "om-oss" or "tjanster" — prepend "/" to make it an absolute path.
+  // Without this, the browser resolves it as a relative URL which breaks navigation.
+  return `/${cleaned}`;
 }
 
 /**
