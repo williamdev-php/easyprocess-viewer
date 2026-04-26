@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { fetchSiteData } from "@/lib/api";
 import { resolveColors } from "@/lib/colors";
@@ -11,6 +11,28 @@ import type { PageSchema } from "@/lib/types";
 interface Props {
   params: Promise<{ siteId: string; slug: string[] }>;
 }
+
+/**
+ * Slug aliases that map to hardcoded standard section routes.
+ * When a user/AI generates a link to e.g. "/kontakt", we redirect to "/contact".
+ * Organized by language for i18n support.
+ */
+const SLUG_TO_ROUTE: Record<string, string> = {
+  // Swedish → English route
+  "om-oss": "about",
+  "om": "about",
+  "tjanster": "services",
+  "vara-tjanster": "services",
+  "galleri": "gallery",
+  "vanliga-fragor": "faq",
+  "kontakt": "contact",
+  "kontakta-oss": "contact",
+  // English aliases
+  "about-us": "about",
+  "our-services": "services",
+  "contact-us": "contact",
+  "frequently-asked-questions": "faq",
+};
 
 /** Find a page in the pages array by matching slug or parent_slug/slug. */
 function findPage(pages: PageSchema[], fullSlug: string): PageSchema | null {
@@ -35,6 +57,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!data?.pages) return {};
 
   const page = findPage(data.pages, fullSlug);
+  // Slug aliases are handled by redirect in the page component — no metadata needed
   if (!page) return {};
 
   const siteTitle = data.meta?.title || "";
@@ -58,17 +81,30 @@ export default async function DynamicPage({ params }: Props) {
   const { siteId, slug } = await params;
   const fullSlug = slug.join("/");
   const data = await fetchSiteData(siteId);
-  if (!data?.pages) notFound();
 
-  const page = findPage(data.pages, fullSlug);
-  if (!page) notFound();
+  const IS_PRODUCTION = process.env.NODE_ENV === "production";
+  const base = IS_PRODUCTION ? "" : `/${siteId}`;
+
+  // Check for custom page first
+  const page = data?.pages ? findPage(data.pages, fullSlug) : null;
+
+  if (!page) {
+    // Redirect slug aliases to their standard routes (e.g., /kontakt → /contact)
+    const standardRoute = SLUG_TO_ROUTE[fullSlug];
+    if (standardRoute) {
+      redirect(`${base}/${standardRoute}`);
+    }
+    notFound();
+  }
+
+  if (!data) notFound();
 
   const colors = resolveColors(data);
   const theme = getTheme(data.theme);
   const variantStyle = getVariantStyle(data.style_variant);
 
   // If this is a parent page, find its children for potential listing
-  const children = data.pages.filter(p => p.parent_slug === page.slug);
+  const children = data.pages?.filter(p => p.parent_slug === page.slug) ?? [];
 
   return (
     <>

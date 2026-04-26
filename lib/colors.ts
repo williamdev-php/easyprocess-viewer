@@ -54,5 +54,15 @@ function sanitizePartialColors(raw?: Partial<Colors>): Partial<Colors> {
 }
 
 export function resolveColors(data: { branding?: { colors?: Partial<Colors> } }): Colors {
-  return { ...DEFAULT_COLORS, ...sanitizePartialColors(data?.branding?.colors) };
+  const custom = sanitizePartialColors(data?.branding?.colors);
+  const merged = { ...DEFAULT_COLORS, ...custom };
+
+  // If primary was customized but secondary was NOT, derive secondary from
+  // primary so the hero gradient stays visually consistent with the brand.
+  // Without this, the hero shows a blue gradient when primary is e.g. pink.
+  if (custom.primary && !custom.secondary) {
+    merged.secondary = adjustColor(custom.primary, -30);
+  }
+
+  return merged;
 }
