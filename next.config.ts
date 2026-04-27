@@ -8,6 +8,9 @@ const editorOrigin = (() => {
 })();
 
 const nextConfig: NextConfig = {
+  // isomorphic-dompurify depends on jsdom which is ESM-only (v29+).
+  // Mark them as external so Next.js doesn't try to bundle/require() them.
+  serverExternalPackages: ["isomorphic-dompurify", "jsdom"],
   // Allow images from any HTTPS domain (generated sites have images from various sources).
   // HTTP is only permitted in development for local testing.
   images: {

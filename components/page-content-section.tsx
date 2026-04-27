@@ -1,12 +1,12 @@
 "use client";
 
-import DOMPurify from "isomorphic-dompurify";
 import { Animate } from "@/components/animate";
 import type { AnimationType } from "@/components/animate";
 import { SectionWrap } from "@/components/section-wrap";
 import type { Colors } from "@/lib/types";
 import type { Theme } from "@/lib/themes";
 import type { VariantStyle } from "@/lib/style-variants";
+import { sanitizeHtml } from "@/lib/sanitize";
 
 interface Props {
   title?: string;
@@ -18,32 +18,7 @@ interface Props {
 }
 
 function sanitizeContent(html: string): string {
-  if (!html) return "";
-  if (!/<[a-z][\s\S]*>/i.test(html)) {
-    return html
-      .split(/\n\n+/)
-      .map((p) => `<p>${p.replace(/\n/g, "<br/>")}</p>`)
-      .join("");
-  }
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: [
-      "p", "br", "hr",
-      "h1", "h2", "h3", "h4", "h5", "h6",
-      "strong", "b", "em", "i", "u", "s", "del",
-      "ul", "ol", "li",
-      "a", "img",
-      "blockquote", "pre", "code",
-      "figure", "figcaption",
-      "table", "thead", "tbody", "tr", "th", "td",
-      "div", "span",
-    ],
-    ALLOWED_ATTR: [
-      "href", "target", "rel", "title",
-      "src", "alt", "width", "height",
-      "class", "style",
-      "colspan", "rowspan",
-    ],
-  });
+  return sanitizeHtml(html);
 }
 
 export function PageContentSection({

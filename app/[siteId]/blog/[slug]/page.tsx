@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import DOMPurify from "isomorphic-dompurify";
 import { fetchBlogPost, fetchSiteMeta } from "@/lib/api";
 import Image from "next/image";
-import { sanitizeImageUrl } from "@/lib/sanitize";
+import { sanitizeImageUrl, sanitizeHtml } from "@/lib/sanitize";
 import { t } from "@/lib/i18n";
 
 interface Props {
@@ -137,38 +136,9 @@ export default async function BlogPostPage({ params }: Props) {
 
 /**
  * Sanitize blog HTML content for safe rendering.
+ * Uses server-safe sanitizer (no jsdom dependency).
  * Backend sanitizes on save; this is defense-in-depth for the viewer.
  */
 function sanitizeContent(content: string): string {
-  if (!content) return "";
-
-  // If content has no HTML tags (legacy plain text), convert to paragraphs
-  if (!/<[a-z][\s\S]*>/i.test(content)) {
-    content = content
-      .split(/\n\n+/)
-      .map((p) => `<p>${p.replace(/\n/g, "<br/>")}</p>`)
-      .join("");
-  }
-
-  return DOMPurify.sanitize(content, {
-    ALLOWED_TAGS: [
-      "p", "br", "hr",
-      "h1", "h2", "h3", "h4", "h5", "h6",
-      "strong", "b", "em", "i", "u", "s", "del",
-      "ul", "ol", "li",
-      "a", "img",
-      "blockquote", "pre", "code",
-      "figure", "figcaption",
-      "table", "thead", "tbody", "tr", "th", "td",
-      "div", "span",
-    ],
-    ALLOWED_ATTR: [
-      "href", "target", "rel", "title",
-      "src", "alt", "width", "height",
-      "class", "style",
-      "colspan", "rowspan",
-    ],
-    ALLOW_DATA_ATTR: false,
-    ADD_ATTR: ["target"],
-  });
+  return sanitizeHtml(content);
 }

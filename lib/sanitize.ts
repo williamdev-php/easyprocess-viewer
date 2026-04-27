@@ -268,3 +268,86 @@ export function sanitizeHeadScripts(
 
   return { scripts: safeScripts, meta_tags: safeMeta };
 }
+
+// ---------------------------------------------------------------------------
+// Server-safe HTML sanitizer (no jsdom/DOMPurify dependency)
+// ---------------------------------------------------------------------------
+
+const ALLOWED_TAGS_SET = new Set([
+  "p", "br", "hr",
+  "h1", "h2", "h3", "h4", "h5", "h6",
+  "strong", "b", "em", "i", "u", "s", "del",
+  "ul", "ol", "li",
+  "a", "img",
+  "blockquote", "pre", "code",
+  "figure", "figcaption",
+  "table", "thead", "tbody", "tr", "th", "td",
+  "div", "span",
+]);
+
+const ALLOWED_ATTRS_SET = new Set([
+  "href", "target", "rel", "title",
+  "src", "alt", "width", "height",
+  "class", "style",
+  "colspan", "rowspan",
+]);
+
+/**
+ * Lightweight server-safe HTML sanitizer. Strips tags and attributes that are
+ * not in the allow-lists. Does NOT depend on jsdom or any browser API.
+ *
+ * Backend already sanitizes content on save — this is defense-in-depth.
+ */
+export function sanitizeHtml(html: string): string {
+  if (!html) return "";
+
+  // If content has no HTML tags (legacy plain text), convert to paragraphs
+  if (!/<[a-z][\s\S]*>/i.test(html)) {
+    return html
+      .split(/\n\n+/)
+      .map((p) => `<p>${p.replace(/\n/g, "<br/>")}</p>`)
+      .join("");
+  }
+
+  // Strip disallowed tags (keep content for non-void tags, remove entirely for script/style/etc)
+  const STRIP_ENTIRELY = /&lt;(script|style|iframe|object|embed|form|input|textarea|select|button)[^>]*>[\s\S]*?<\/\1>/gi;
+  let result = html.replace(STRIP_ENTIRELY, "");
+
+  // Remove dangerous tags completely (including content)
+  result = result.replace(/<(script|style|iframe|object|embed|form|input|textarea|select|button)\b[^>]*>[\s\S]*?<\/\1>/gi, "");
+  result = result.replace(/<(script|style|iframe|object|embed|form|input|textarea|select|button)\b[^>]*\/?>/gi, "");
+
+  // Strip event handlers (on*)
+  result = result.replace(/\s+on[a-z]+\s*=\s*["'][^"']*["']/gi, "");
+  result = result.replace(/\s+on[a-z]+\s*=\s*[^\s>]+/gi, "");
+
+  // Strip javascript: hrefs
+  result = result.replace(/href\s*=\s*["']\s*javascript:[^"']*["']/gi, 'href="#"');
+
+  // Remove disallowed tags but keep their inner content
+  result = result.replace(/<\/?([a-z][a-z0-9]*)\b[^>]*>/gi, (match, tag: string) => {
+    const lower = tag.toLowerCase();
+    if (!ALLOWED_TAGS_SET.has(lower)) return "";
+
+    // For opening tags, filter attributes
+    if (match.startsWith("</")) return `</${lower}>`;
+
+    const selfClosing = match.endsWith("/>");
+    // Extract allowed attributes
+    const attrs: string[] = [];
+    const attrRegex = /([a-z][a-z0-9-]*)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/gi;
+    let attrMatch;
+    while ((attrMatch = attrRegex.exec(match)) !== null) {
+      const attrName = attrMatch[1].toLowerCase();
+      const attrValue = attrMatch[2] ?? attrMatch[3] ?? attrMatch[4] ?? "";
+      if (ALLOWED_ATTRS_SET.has(attrName)) {
+        attrs.push(`${attrName}="${attrValue.replace(/"/g, "&quot;")}"`);
+      }
+    }
+
+    const attrStr = attrs.length > 0 ? " " + attrs.join(" ") : "";
+    return selfClosing ? `<${lower}${attrStr} />` : `<${lower}${attrStr}>`;
+  });
+
+  return result;
+}
