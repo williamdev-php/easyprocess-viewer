@@ -24,6 +24,7 @@ import { LogoCloudSection } from "@/components/logo-cloud-section";
 import { CustomContentSection } from "@/components/custom-content-section";
 import { BannerSection } from "@/components/banner-section";
 import { RankingSection } from "@/components/ranking-section";
+import { QuizSection } from "@/components/quiz-section";
 import { PageContentSection } from "@/components/page-content-section";
 import { Nav } from "@/components/nav";
 import { Footer } from "@/components/footer";
@@ -44,7 +45,7 @@ const DEFAULT_ORDER = [
   "hero", "about", "features", "stats", "services", "process",
   "gallery", "team", "testimonials", "faq", "cta", "contact",
   "pricing", "video", "logo_cloud", "custom_content", "banner",
-  "ranking", "page_content",
+  "ranking", "quiz", "page_content",
 ];
 
 export function PreviewShell({ initialData, siteId }: Props) {
@@ -354,6 +355,10 @@ export function PreviewShell({ initialData, siteId }: Props) {
       case "ranking":
         return wrap(
           <RankingSection {...sectionData as any} colors={colors} theme={theme} variantStyle={variantStyle} animation={getAnim(key)} />
+        );
+      case "quiz":
+        return wrap(
+          <QuizSection {...sectionData as any} colors={colors} theme={theme} variantStyle={variantStyle} animation={getAnim(key)} />
         );
       case "page_content":
         return wrap(
