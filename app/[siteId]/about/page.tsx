@@ -5,7 +5,6 @@ import { resolveColors } from "@/lib/colors";
 import { getTheme } from "@/lib/themes";
 import { getVariantStyle } from "@/lib/style-variants";
 import { t } from "@/lib/i18n";
-import { PageHeader } from "@/components/page-header";
 import { AboutSection } from "@/components/about-section";
 import { EditablePageWrapper } from "@/components/editable-page-wrapper";
 import { DynamicPageRenderer } from "@/components/dynamic-page-renderer";
@@ -55,13 +54,6 @@ export default async function AboutPage({ params }: Props) {
 
   return (
     <>
-      <PageHeader
-        title={data.about.title || t("nav.about", lang)}
-        subtitle={data.business?.tagline}
-        colors={colors}
-        theme={theme}
-        variantStyle={variantStyle}
-      />
       <EditablePageWrapper section="about">
         <AboutSection
           {...data.about}

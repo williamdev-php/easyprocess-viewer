@@ -5,7 +5,6 @@ import { resolveColors } from "@/lib/colors";
 import { getTheme } from "@/lib/themes";
 import { getVariantStyle } from "@/lib/style-variants";
 import { t } from "@/lib/i18n";
-import { PageHeader } from "@/components/page-header";
 import { ContactSection } from "@/components/contact-section";
 import { EditablePageWrapper } from "@/components/editable-page-wrapper";
 import { DynamicPageRenderer } from "@/components/dynamic-page-renderer";
@@ -44,12 +43,6 @@ export default async function ContactPage({ params }: Props) {
 
   return (
     <>
-      <PageHeader
-        title={data.contact?.title || t("contact.contactUs", lang)}
-        colors={colors}
-        theme={theme}
-        variantStyle={variantStyle}
-      />
       <EditablePageWrapper section="contact">
         <ContactSection
           title={data.contact?.title || t("contact.contactUs", lang)}

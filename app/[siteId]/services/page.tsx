@@ -5,7 +5,6 @@ import { resolveColors } from "@/lib/colors";
 import { getTheme } from "@/lib/themes";
 import { getVariantStyle } from "@/lib/style-variants";
 import { t } from "@/lib/i18n";
-import { PageHeader } from "@/components/page-header";
 import { ServicesSection } from "@/components/services-section";
 import { EditablePageWrapper } from "@/components/editable-page-wrapper";
 import { DynamicPageRenderer } from "@/components/dynamic-page-renderer";
@@ -50,29 +49,14 @@ export default async function ServicesPage({ params }: Props) {
       return <DynamicPageRenderer page={page} siteData={data} colors={colors} theme={theme} variantStyle={variantStyle} />;
     }
     return (
-      <>
-        <PageHeader
-          title={t("nav.services", lang)}
-          colors={colors}
-          theme={theme}
-          variantStyle={variantStyle}
-        />
-        <div className="py-20 text-center text-gray-500">
-          <p>{t("services.empty", lang)}</p>
-        </div>
-      </>
+      <div className="py-20 text-center text-gray-500">
+        <p>{t("services.empty", lang)}</p>
+      </div>
     );
   }
 
   return (
     <>
-      <PageHeader
-        title={data.services.title || t("nav.services", lang)}
-        subtitle={data.services.subtitle}
-        colors={colors}
-        theme={theme}
-        variantStyle={variantStyle}
-      />
       <EditablePageWrapper section="services">
         <ServicesSection
           {...data.services}

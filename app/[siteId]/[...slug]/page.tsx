@@ -4,7 +4,6 @@ import { fetchSiteData } from "@/lib/api";
 import { resolveColors } from "@/lib/colors";
 import { getTheme } from "@/lib/themes";
 import { getVariantStyle } from "@/lib/style-variants";
-import { PageHeader } from "@/components/page-header";
 import { DynamicPageRenderer } from "@/components/dynamic-page-renderer";
 import type { PageSchema } from "@/lib/types";
 
