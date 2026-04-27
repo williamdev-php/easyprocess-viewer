@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import DOMPurify from "isomorphic-dompurify";
 import { fetchBlogPost, fetchSiteMeta } from "@/lib/api";
+import Image from "next/image";
 import { sanitizeImageUrl } from "@/lib/sanitize";
 import { t } from "@/lib/i18n";
 
@@ -46,8 +47,29 @@ export default async function BlogPostPage({ params }: Props) {
   const isProduction = process.env.NODE_ENV === "production";
   const base = isProduction ? "" : `/${siteId}`;
 
+  // Build Article JSON-LD structured data
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    ...(post.excerpt ? { description: post.excerpt } : {}),
+    ...(post.featured_image ? { image: post.featured_image } : {}),
+    ...(post.published_at ? { datePublished: post.published_at } : {}),
+    ...(post.author_name
+      ? { author: { "@type": "Person", name: post.author_name } }
+      : {}),
+    ...(meta?.business_name
+      ? { publisher: { "@type": "Organization", name: meta.business_name } }
+      : {}),
+  };
+  const articleJsonLdHtml = JSON.stringify(articleJsonLd).replace(/</g, "\\u003c");
+
   return (
     <main className="mx-auto max-w-3xl px-4 pb-12 pt-28 sm:px-6 sm:pt-32 lg:px-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: articleJsonLdHtml }}
+      />
       {/* Back link */}
       <Link
         href={`${base}/blog`}
@@ -91,11 +113,14 @@ export default async function BlogPostPage({ params }: Props) {
         {/* Featured image */}
         {sanitizeImageUrl(post.featured_image) && (
           <div className="mt-8 overflow-hidden rounded-2xl">
-            <img
+            <Image
               src={sanitizeImageUrl(post.featured_image)!}
               alt={post.title}
+              width={960}
+              height={540}
               className="w-full object-cover"
-              loading="eager"
+              priority
+              sizes="(max-width: 768px) 100vw, 768px"
             />
           </div>
         )}

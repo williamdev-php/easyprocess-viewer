@@ -40,7 +40,7 @@ export function Hero({
 
   return (
     <section
-      className={`relative flex ${fullscreen ? "min-h-screen" : "min-h-[60vh]"} items-center justify-center overflow-hidden px-5 sm:px-8`}
+      className={`relative flex ${fullscreen ? "min-h-screen" : "min-h-[60vh]"} items-center justify-center overflow-hidden px-5 sm:px-8 lg:px-12 xl:px-16`}
       style={{
         background: bgImg ? "transparent" : colors.primary,
       }}
@@ -105,15 +105,15 @@ export function Hero({
           {show_gradient && variantStyle.showDecorations && (
             <>
               <div
-                className="absolute -top-40 right-1/4 h-[600px] w-[600px] rounded-full opacity-20 blur-[120px]"
+                className="absolute -top-40 right-1/4 h-[600px] w-[600px] rounded-full opacity-[0.12] blur-[120px]"
                 style={{ background: colors.accent }}
               />
               <div
-                className="absolute -bottom-32 -left-32 h-[500px] w-[500px] rounded-full opacity-15 blur-[100px]"
+                className="absolute -bottom-32 -left-32 h-[500px] w-[500px] rounded-full opacity-[0.12] blur-[100px]"
                 style={{ background: accentSoft }}
               />
               <div
-                className="absolute right-0 top-1/3 h-[300px] w-[300px] rounded-full opacity-10 blur-[80px]"
+                className="absolute right-0 top-1/3 h-[300px] w-[300px] rounded-full opacity-[0.08] blur-[80px]"
                 style={{ background: colors.background }}
               />
             </>
@@ -153,7 +153,7 @@ export function Hero({
             <div className={`mt-10 flex flex-col gap-4 sm:mt-12 sm:flex-row sm:gap-5 ${isLeft ? "items-start" : "items-center sm:justify-center"}`}>
               <a
                 href={sanitizeUrl(cta.href) || "#contact"}
-                className={`group inline-flex items-center gap-2.5 ${variantStyle.buttonRadius} px-8 py-4 text-base font-semibold transition-all duration-300 hover:scale-[1.03] sm:px-9 sm:py-4.5`}
+                className={`group inline-flex items-center gap-2.5 ${variantStyle.buttonRadius} px-8 py-4 text-base font-semibold transition-all duration-300 hover:scale-[1.03] sm:px-9 sm:py-[18px]`}
                 style={{
                   background: colors.accent,
                   color: colors.text,

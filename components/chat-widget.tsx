@@ -79,11 +79,15 @@ export function ChatWidget({ siteId, lang, accentColor }: Props) {
   const [error, setError] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const pollRef = useRef<NodeJS.Timeout | null>(null);
+  /** Tracks consecutive polls with no new messages for exponential backoff. */
+  const idlePollCountRef = useRef(0);
+  const lastMessageCountRef = useRef(0);
 
-  // Restore session from localStorage
+  // Restore session from sessionStorage (not localStorage, to avoid persisting
+  // sensitive data like email across browser sessions / tabs)
   useEffect(() => {
     try {
-      const stored = localStorage.getItem(`${STORAGE_KEY_PREFIX}${siteId}`);
+      const stored = sessionStorage.getItem(`${STORAGE_KEY_PREFIX}${siteId}`);
       if (stored) {
         const data = JSON.parse(stored);
         if (data.email) setEmail(data.email);
@@ -98,7 +102,7 @@ export function ChatWidget({ siteId, lang, accentColor }: Props) {
   const saveSession = useCallback(
     (e: string, n: string, cId: string | null) => {
       try {
-        localStorage.setItem(
+        sessionStorage.setItem(
           `${STORAGE_KEY_PREFIX}${siteId}`,
           JSON.stringify({ email: e, name: n, conversationId: cId })
         );
@@ -125,15 +129,42 @@ export function ChatWidget({ siteId, lang, accentColor }: Props) {
     }
   }, [conversationId, siteId, email]);
 
+  // Poll with exponential backoff: starts at 4s, doubles on each idle poll
+  // (no new messages), capped at 60s. Resets to 4s when new messages arrive.
+  const BASE_POLL_MS = 4_000;
+  const MAX_POLL_MS = 60_000;
+
+  const schedulePoll = useCallback(() => {
+    if (pollRef.current) clearTimeout(pollRef.current);
+    const delay = Math.min(BASE_POLL_MS * Math.pow(2, idlePollCountRef.current), MAX_POLL_MS);
+    pollRef.current = setTimeout(async () => {
+      await fetchMessages();
+      schedulePoll();
+    }, delay);
+  }, [fetchMessages]);
+
+  // Track whether new messages arrived and adjust backoff accordingly
+  useEffect(() => {
+    if (messages.length > lastMessageCountRef.current) {
+      // New messages arrived — reset backoff
+      idlePollCountRef.current = 0;
+    } else if (messages.length === lastMessageCountRef.current && messages.length > 0) {
+      // No new messages — increase backoff
+      idlePollCountRef.current = Math.min(idlePollCountRef.current + 1, 10);
+    }
+    lastMessageCountRef.current = messages.length;
+  }, [messages]);
+
   useEffect(() => {
     if (view === "chat" && conversationId) {
+      idlePollCountRef.current = 0;
       fetchMessages();
-      pollRef.current = setInterval(fetchMessages, 8000);
+      schedulePoll();
     }
     return () => {
-      if (pollRef.current) clearInterval(pollRef.current);
+      if (pollRef.current) clearTimeout(pollRef.current);
     };
-  }, [view, conversationId, fetchMessages]);
+  }, [view, conversationId, fetchMessages, schedulePoll]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

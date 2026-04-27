@@ -1,13 +1,17 @@
 import type { MetadataRoute } from "next";
+import { headers } from "next/headers";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001";
+export default async function robots(): Promise<MetadataRoute.Robots> {
+  const headersList = await headers();
+  const host = headersList.get("host") || "localhost:3001";
+  const proto = headersList.get("x-forwarded-proto") || "https";
+  const baseUrl = `${proto}://${host}`;
 
-export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
       allow: "/",
     },
-    sitemap: `${BASE_URL}/sitemap.xml`,
+    sitemap: `${baseUrl}/sitemap.xml`,
   };
 }

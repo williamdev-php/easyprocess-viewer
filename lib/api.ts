@@ -202,9 +202,25 @@ export async function fetchBookingPaymentMethods(siteId: string) {
 }
 
 export async function submitBooking(siteId: string, data: Record<string, unknown>) {
+  // Fetch CSRF token before submitting. See contact-section.tsx for details.
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  try {
+    const csrfRes = await fetch(`${API_URL}/api/sites/${siteId}/csrf-token`, {
+      credentials: "include",
+    });
+    if (csrfRes.ok) {
+      const csrfData = await csrfRes.json();
+      if (csrfData.token) headers["X-CSRF-Token"] = csrfData.token;
+    }
+  } catch {
+    // CSRF endpoint not available yet — proceed without token.
+    // TODO: implement the backend CSRF endpoint and remove this fallback.
+  }
+
   const res = await fetch(`${API_URL}/api/sites/${siteId}/bookings`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
+    credentials: "include",
     body: JSON.stringify(data),
   });
   return res.json();

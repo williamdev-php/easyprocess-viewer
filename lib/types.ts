@@ -117,10 +117,37 @@ export interface QuizResult {
   cta?: CTAButton | null;
 }
 
+export interface SectionSpacing {
+  padding_top?: string;    // e.g. "0", "4", "8", "12", "16", "20", "24", "32"
+  padding_bottom?: string;
+  padding_x?: string;
+  margin_top?: string;
+  margin_bottom?: string;
+}
+
+export interface SectionBorder {
+  enabled?: boolean;
+  color?: string;          // hex color
+  width?: string;          // "1", "2", "4"
+  style?: "solid" | "dashed" | "dotted";
+  radius?: string;         // e.g. "none", "sm", "md", "lg", "xl", "2xl", "full"
+  sides?: ("top" | "bottom" | "left" | "right")[]; // which sides to apply border
+}
+
 export interface SectionSettings {
   animation?: string; // "fade-up" | "fade-in" | "slide-left" | "slide-right" | "scale" | "none"
   background_color?: string;
   show_gradient?: boolean;
+  spacing?: SectionSpacing;
+  border?: SectionBorder;
+  /** Per-section color overrides (primary, text, accent, background, opacity) */
+  color_overrides?: {
+    background?: string;
+    text?: string;
+    primary?: string;
+    accent?: string;
+    opacity?: number;
+  };
 }
 
 export interface ExtraSection {
@@ -133,6 +160,8 @@ export interface HeadScript {
   content?: string | null;
   async_attr?: boolean;
   defer?: boolean;
+  /** Subresource Integrity hash (e.g. "sha384-..."). Required for external scripts. */
+  integrity?: string | null;
 }
 
 export interface HeadMeta {
@@ -318,6 +347,23 @@ export interface PageSection {
   data: Record<string, unknown>;
 }
 
+export type PageLayout = "default" | "full-width" | "narrow" | "sidebar-left" | "sidebar-right" | "landing";
+
+export interface PageLayoutConfig {
+  /** Page layout preset */
+  layout?: PageLayout;
+  /** Max width override: "sm" | "md" | "lg" | "xl" | "full" */
+  max_width?: string;
+  /** Show page title/header */
+  show_header?: boolean;
+  /** Custom background color (hex) */
+  background_color?: string;
+  /** Padding preset: "none" | "sm" | "md" | "lg" */
+  padding?: string;
+  /** Sidebar content (for sidebar layouts) — rendered from section data */
+  sidebar_sections?: PageSection[];
+}
+
 export interface PageSchema {
   slug: string;
   title: string;
@@ -326,11 +372,15 @@ export interface PageSchema {
   parent_slug?: string | null;
   show_in_nav?: boolean;
   nav_order?: number;
+  /** Page-level layout configuration */
+  layout_config?: PageLayoutConfig;
 }
 
 export interface NavItem {
   label: string;
   href: string;
+  /** Nested/dropdown children for multi-level navigation */
+  children?: NavItem[];
 }
 
 export interface SiteResponse {

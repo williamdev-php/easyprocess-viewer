@@ -9,8 +9,6 @@ interface LayoutShiftEntry extends PerformanceEntry {
   value: number;
 }
 
-/** Delay before collecting paint metrics to let browser settle. */
-const VITALS_INIT_DELAY_MS = 100;
 /** Extra wait for LCP/CLS observers to fire. */
 const OBSERVERS_SETTLE_MS = 1_000;
 
@@ -69,71 +67,69 @@ function collectWebVitals(): Promise<{
   cls: number | null;
 }> {
   return new Promise((resolve) => {
-    setTimeout(() => {
-      const result = {
-        load_time_ms: null as number | null,
-        ttfb_ms: null as number | null,
-        fcp_ms: null as number | null,
-        lcp_ms: null as number | null,
-        cls: null as number | null,
-      };
+    const result = {
+      load_time_ms: null as number | null,
+      ttfb_ms: null as number | null,
+      fcp_ms: null as number | null,
+      lcp_ms: null as number | null,
+      cls: null as number | null,
+    };
 
-      try {
-        const nav = performance.getEntriesByType(
-          "navigation"
-        )[0] as PerformanceNavigationTiming | undefined;
-        if (nav) {
-          result.load_time_ms = Math.round(nav.loadEventEnd - nav.startTime);
-          result.ttfb_ms = Math.round(nav.responseStart - nav.requestStart);
-        }
-
-        const paintEntries = performance.getEntriesByType("paint");
-        const fcp = paintEntries.find((e) => e.name === "first-contentful-paint");
-        if (fcp) {
-          result.fcp_ms = Math.round(fcp.startTime);
-        }
-      } catch {
-        // Perf API not available
+    try {
+      const nav = performance.getEntriesByType(
+        "navigation"
+      )[0] as PerformanceNavigationTiming | undefined;
+      if (nav) {
+        result.load_time_ms = Math.round(nav.loadEventEnd - nav.startTime);
+        result.ttfb_ms = Math.round(nav.responseStart - nav.requestStart);
       }
 
-      // LCP via PerformanceObserver
-      try {
-        if ("PerformanceObserver" in window) {
-          const lcpObserver = new PerformanceObserver((list) => {
-            const entries = list.getEntries();
-            if (entries.length > 0) {
-              result.lcp_ms = Math.round(entries[entries.length - 1].startTime);
-            }
-            lcpObserver.disconnect();
-          });
-          lcpObserver.observe({ type: "largest-contentful-paint", buffered: true });
-
-          // CLS via layout-shift
-          let clsValue = 0;
-          const clsObserver = new PerformanceObserver((list) => {
-            for (const entry of list.getEntries()) {
-              const shift = entry as LayoutShiftEntry;
-              if (!shift.hadRecentInput) {
-                clsValue += shift.value;
-              }
-            }
-          });
-          clsObserver.observe({ type: "layout-shift", buffered: true });
-
-          // Give observers time to fire, then resolve
-          setTimeout(() => {
-            clsObserver.disconnect();
-            result.cls = Math.round(clsValue * 1000) / 1000;
-            resolve(result);
-          }, OBSERVERS_SETTLE_MS);
-          return;
-        }
-      } catch {
-        // Observer not supported
+      const paintEntries = performance.getEntriesByType("paint");
+      const fcp = paintEntries.find((e) => e.name === "first-contentful-paint");
+      if (fcp) {
+        result.fcp_ms = Math.round(fcp.startTime);
       }
+    } catch {
+      // Perf API not available
+    }
 
-      resolve(result);
-    }, VITALS_INIT_DELAY_MS);
+    // LCP via PerformanceObserver
+    try {
+      if ("PerformanceObserver" in window) {
+        const lcpObserver = new PerformanceObserver((list) => {
+          const entries = list.getEntries();
+          if (entries.length > 0) {
+            result.lcp_ms = Math.round(entries[entries.length - 1].startTime);
+          }
+          lcpObserver.disconnect();
+        });
+        lcpObserver.observe({ type: "largest-contentful-paint", buffered: true });
+
+        // CLS via layout-shift
+        let clsValue = 0;
+        const clsObserver = new PerformanceObserver((list) => {
+          for (const entry of list.getEntries()) {
+            const shift = entry as LayoutShiftEntry;
+            if (!shift.hadRecentInput) {
+              clsValue += shift.value;
+            }
+          }
+        });
+        clsObserver.observe({ type: "layout-shift", buffered: true });
+
+        // Give observers time to fire, then resolve
+        setTimeout(() => {
+          clsObserver.disconnect();
+          result.cls = Math.round(clsValue * 1000) / 1000;
+          resolve(result);
+        }, OBSERVERS_SETTLE_MS);
+        return;
+      }
+    } catch {
+      // Observer not supported
+    }
+
+    resolve(result);
   });
 }
 

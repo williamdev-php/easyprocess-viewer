@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
   // Allow images from any HTTPS domain (generated sites have images from various sources).
   // HTTP is only permitted in development for local testing.
   images: {
+    formats: ["image/avif", "image/webp"],
     qualities: [75, 80],
     remotePatterns: [
       { protocol: "https", hostname: "**" },
@@ -32,6 +33,20 @@ const nextConfig: NextConfig = {
     const frameAncestors = `frame-ancestors 'self' https://qvicko.se https://*.qvicko.se https://qvicko.com https://*.qvicko.com http://localhost:* ${editorOrigin}`;
     return [
       {
+        // Global security headers
+        source: "/(.*)",
+        headers: [
+          {
+            key: "X-Frame-Options",
+            // SAMEORIGIN allows the editor iframe embedding while blocking
+            // third-party clickjacking. The CSP frame-ancestors directive
+            // provides more granular control and takes precedence in modern
+            // browsers, but X-Frame-Options is kept for legacy browser support.
+            value: "SAMEORIGIN",
+          },
+        ],
+      },
+      {
         // Favicon and public assets — cache for 1 day
         source: "/favicon.ico",
         headers: [
@@ -42,14 +57,27 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        // Sitemap — cache for 1 hour, allow stale while revalidating
+        source: "/sitemap.xml",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=3600, s-maxage=3600, stale-while-revalidate=600",
+          },
+        ],
+      },
+      {
         // Preview pages (loaded in editor iframe) — permissive CSP
+        // NOTE: unsafe-inline is required for preview because the editor injects
+        // dynamic style attributes and inline event handlers via postMessage-driven
+        // updates. unsafe-eval has been removed to prevent arbitrary code execution.
         source: "/preview/:path*",
         headers: [
           {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+              "script-src 'self' 'unsafe-inline'",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com data:",

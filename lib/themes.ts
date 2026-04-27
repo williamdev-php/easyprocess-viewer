@@ -1,7 +1,7 @@
-export type ThemeId = "modern" | "bold" | "elegant" | "minimal";
+export type ThemeId = "modern" | "bold" | "elegant" | "minimal" | "brutalist" | "soft" | "corporate" | "playful";
 
 export interface Theme {
-  id: ThemeId;
+  id: ThemeId | "custom";
   /** Border radius for cards, buttons, images */
   radius: { sm: string; md: string; lg: string; full: string };
   /** Shadow styles */
@@ -23,6 +23,9 @@ export interface Theme {
   /** Divider between sections */
   sectionDivider: boolean;
 }
+
+/** Partial theme config for custom theme building — all fields optional. */
+export type CustomThemeConfig = Partial<Omit<Theme, "id">>;
 
 const modern: Theme = {
   id: "modern",
@@ -96,10 +99,101 @@ const minimal: Theme = {
   sectionDivider: false,
 };
 
-export const themes: Record<ThemeId, Theme> = { modern, bold, elegant, minimal };
+const brutalist: Theme = {
+  id: "brutalist",
+  radius: { sm: "rounded-none", md: "rounded-none", lg: "rounded-none", full: "rounded-none" },
+  shadow: {
+    card: "shadow-[4px_4px_0_rgba(0,0,0,0.9)]",
+    button: "shadow-[3px_3px_0_rgba(0,0,0,0.9)]",
+    nav: "shadow-[0_2px_0_rgba(0,0,0,0.9)]",
+  },
+  sectionPadding: "py-20 sm:py-28",
+  heading: { weight: "font-black", tracking: "tracking-tight", transform: "uppercase" },
+  button: { radius: "rounded-none", padding: "px-8 py-4", weight: "font-bold" },
+  card: { border: true, radius: "rounded-none", padding: "p-6" },
+  heroHeight: "min-h-[90vh]",
+  navPadding: "py-4",
+  decorations: false,
+  sectionDivider: true,
+};
 
-export function getTheme(id?: string): Theme {
-  if (!id || id === "default") return modern;
-  if (id in themes) return themes[id as ThemeId];
-  return modern;
+const soft: Theme = {
+  id: "soft",
+  radius: { sm: "rounded-2xl", md: "rounded-3xl", lg: "rounded-[2rem]", full: "rounded-full" },
+  shadow: {
+    card: "shadow-[0_2px_15px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)]",
+    button: "shadow-md shadow-black/5",
+    nav: "shadow-sm shadow-black/3",
+  },
+  sectionPadding: "py-24 sm:py-32",
+  heading: { weight: "font-semibold", tracking: "tracking-tight", transform: "" },
+  button: { radius: "rounded-full", padding: "px-8 py-3.5", weight: "font-medium" },
+  card: { border: false, radius: "rounded-3xl", padding: "p-8" },
+  heroHeight: "min-h-[80vh]",
+  navPadding: "py-5",
+  decorations: true,
+  sectionDivider: false,
+};
+
+const corporate: Theme = {
+  id: "corporate",
+  radius: { sm: "rounded", md: "rounded-md", lg: "rounded-lg", full: "rounded-full" },
+  shadow: {
+    card: "shadow-sm shadow-black/[0.06]",
+    button: "shadow-sm",
+    nav: "shadow-[0_1px_2px_rgba(0,0,0,0.06)]",
+  },
+  sectionPadding: "py-20 sm:py-28",
+  heading: { weight: "font-bold", tracking: "tracking-tight", transform: "" },
+  button: { radius: "rounded-md", padding: "px-6 py-3", weight: "font-semibold" },
+  card: { border: true, radius: "rounded-md", padding: "p-6" },
+  heroHeight: "min-h-[70vh]",
+  navPadding: "py-3",
+  decorations: false,
+  sectionDivider: true,
+};
+
+const playful: Theme = {
+  id: "playful",
+  radius: { sm: "rounded-xl", md: "rounded-2xl", lg: "rounded-3xl", full: "rounded-full" },
+  shadow: {
+    card: "shadow-lg shadow-black/[0.08]",
+    button: "shadow-lg shadow-black/10",
+    nav: "shadow-md shadow-black/5",
+  },
+  sectionPadding: "py-24 sm:py-36",
+  heading: { weight: "font-extrabold", tracking: "tracking-tight", transform: "" },
+  button: { radius: "rounded-full", padding: "px-10 py-4", weight: "font-bold" },
+  card: { border: false, radius: "rounded-2xl", padding: "p-8 sm:p-10" },
+  heroHeight: "min-h-screen",
+  navPadding: "py-5",
+  decorations: true,
+  sectionDivider: false,
+};
+
+export const themes: Record<ThemeId, Theme> = { modern, bold, elegant, minimal, brutalist, soft, corporate, playful };
+
+/**
+ * Build a custom theme by merging partial overrides onto a base theme.
+ * Use this to let site owners tweak individual theme properties.
+ */
+export function buildCustomTheme(base: ThemeId | Theme, overrides: CustomThemeConfig): Theme {
+  const baseTheme = typeof base === "string" ? themes[base] ?? modern : base;
+  return {
+    ...baseTheme,
+    ...overrides,
+    id: "custom",
+    radius: { ...baseTheme.radius, ...overrides.radius },
+    shadow: { ...baseTheme.shadow, ...overrides.shadow },
+    heading: { ...baseTheme.heading, ...overrides.heading },
+    button: { ...baseTheme.button, ...overrides.button },
+    card: { ...baseTheme.card, ...overrides.card },
+  };
+}
+
+export function getTheme(id?: string, customOverrides?: CustomThemeConfig): Theme {
+  if (!id || id === "default") return customOverrides ? buildCustomTheme("modern", customOverrides) : modern;
+  if (id === "custom" && customOverrides) return buildCustomTheme("modern", customOverrides);
+  const base = id in themes ? themes[id as ThemeId] : modern;
+  return customOverrides ? buildCustomTheme(base, customOverrides) : base;
 }

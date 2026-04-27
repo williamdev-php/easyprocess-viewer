@@ -67,10 +67,17 @@ export function PreviewShell({ initialData, siteId }: Props) {
       window.location.origin,
     ].filter(Boolean) as string[];
 
+    // Only allow specific known development ports instead of all localhost ports
+    // to reduce the attack surface from malicious pages on other local ports.
+    const ALLOWED_DEV_PORTS = new Set(["3000", "3001", "3002", "4000", "5173", "8000", "8080"]);
+
     function isAllowedOrigin(origin: string) {
       if (allowedOrigins.includes(origin)) return true;
-      // Allow localhost on any port for local development
-      if (origin.startsWith("http://localhost:")) return true;
+      // Restrict localhost to known development ports
+      if (origin.startsWith("http://localhost:")) {
+        const port = origin.split(":")[2];
+        return ALLOWED_DEV_PORTS.has(port);
+      }
       return false;
     }
 

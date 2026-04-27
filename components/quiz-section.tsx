@@ -5,6 +5,7 @@ import type { Colors } from "@/lib/types";
 import type { Theme } from "@/lib/themes";
 import type { VariantStyle } from "@/lib/style-variants";
 import { mixColor } from "@/lib/colors";
+import Image from "next/image";
 import { Reveal } from "./reveal";
 import { SectionWrap } from "./section-wrap";
 
@@ -181,10 +182,13 @@ export function QuizSection({
               style={{ background: cardBg, borderColor }}
             >
               {steps[currentStep].image && (
-                <img
+                <Image
                   src={steps[currentStep].image!}
-                  alt=""
+                  alt={steps[currentStep].question}
+                  width={640}
+                  height={192}
                   className={`mb-6 h-48 w-full object-cover ${variantStyle.cardRadius}`}
+                  sizes="(max-width: 640px) 100vw, 640px"
                 />
               )}
               <h3

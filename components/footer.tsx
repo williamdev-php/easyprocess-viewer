@@ -88,11 +88,11 @@ function Decorations({ colors, footerBg }: { colors: Colors; footerBg: string })
   return (
     <>
       <div
-        className="absolute -left-32 -top-32 h-64 w-64 rounded-full opacity-[0.04] blur-[80px]"
+        className="absolute -left-32 -top-32 h-64 w-64 rounded-full opacity-[0.08] blur-[80px]"
         style={{ background: colors.primary }}
       />
       <div
-        className="absolute -bottom-24 -right-24 h-48 w-48 rounded-full opacity-[0.03] blur-[60px]"
+        className="absolute -bottom-24 -right-24 h-48 w-48 rounded-full opacity-[0.08] blur-[60px]"
         style={{ background: colors.accent }}
       />
     </>

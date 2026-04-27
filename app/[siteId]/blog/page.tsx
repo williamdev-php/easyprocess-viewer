@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { fetchBlogPosts, fetchBlogCategories, fetchSiteMeta } from "@/lib/api";
+import Image from "next/image";
 import { t } from "@/lib/i18n";
 
 interface Props {
@@ -85,11 +86,13 @@ export default async function BlogListingPage({ params, searchParams }: Props) {
             >
               {post.featured_image && (
                 <div className="aspect-[16/9] overflow-hidden">
-                  <img
+                  <Image
                     src={post.featured_image}
                     alt={post.title}
+                    width={600}
+                    height={338}
                     className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    loading="lazy"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   />
                 </div>
               )}

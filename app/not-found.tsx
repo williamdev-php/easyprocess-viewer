@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+const NOT_FOUND_REDIRECT_URL = process.env.NOT_FOUND_REDIRECT_URL || "https://qvicko.com";
+
 export default function NotFound() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
@@ -13,7 +15,7 @@ export default function NotFound() {
           or is no longer published.
         </p>
         <Link
-          href="https://qvicko.com"
+          href={NOT_FOUND_REDIRECT_URL}
           className="inline-block rounded-full bg-blue-600 px-8 py-3.5 text-white font-semibold text-lg shadow-lg hover:bg-blue-700 hover:shadow-xl transition-all duration-200"
         >
           Create or transform your website

@@ -36,6 +36,8 @@ export interface VariantStyle {
   iconRadius: string;
   /** Icon container size class */
   iconSize: string;
+  /** Icon inner SVG size class (standardized across variants) */
+  iconInnerSize: string;
   /** Button radius class */
   buttonRadius: string;
   /** Whether to show decorative gradient blobs */
@@ -63,7 +65,7 @@ export interface VariantStyle {
   /** Contact layout */
   contactLayout: "centered" | "two-column" | "card";
   /** Nav layout */
-  navStyle: "floating" | "sticky" | "minimal";
+  navStyle: "floating" | "sticky" | "minimal" | "centered" | "bordered";
   /** Footer layout */
   footerStyle: "columns" | "centered" | "minimal";
 }
@@ -85,6 +87,7 @@ const variant0: VariantStyle = {
   headerAlign: "center",
   iconRadius: "rounded-xl",
   iconSize: "h-12 w-12",
+  iconInnerSize: "h-6 w-6",
   buttonRadius: "rounded-2xl",
   showDecorations: true,
   hoverEffect: "hover:-translate-y-1",
@@ -117,7 +120,8 @@ const variant1: VariantStyle = {
   gridCols: "sm:grid-cols-2 lg:grid-cols-2",
   headerAlign: "center",
   iconRadius: "rounded-lg",
-  iconSize: "h-11 w-11",
+  iconSize: "h-12 w-12",
+  iconInnerSize: "h-6 w-6",
   buttonRadius: "rounded-xl",
   showDecorations: true,
   hoverEffect: "hover:-translate-y-0.5 hover:shadow-lg",
@@ -150,7 +154,8 @@ const variant2: VariantStyle = {
   gridCols: "sm:grid-cols-2 lg:grid-cols-2",
   headerAlign: "left",
   iconRadius: "rounded-lg",
-  iconSize: "h-10 w-10",
+  iconSize: "h-12 w-12",
+  iconInnerSize: "h-6 w-6",
   buttonRadius: "rounded-lg",
   showDecorations: false,
   hoverEffect: "hover:shadow-md",
@@ -183,7 +188,8 @@ const variant3: VariantStyle = {
   gridCols: "sm:grid-cols-2 lg:grid-cols-3",
   headerAlign: "center",
   iconRadius: "rounded-2xl",
-  iconSize: "h-14 w-14",
+  iconSize: "h-12 w-12",
+  iconInnerSize: "h-6 w-6",
   buttonRadius: "rounded-full",
   showDecorations: true,
   hoverEffect: "hover:-translate-y-1.5 hover:shadow-xl",
@@ -221,7 +227,7 @@ export function getVariantStyle(variant?: number): VariantStyle {
 }
 
 /** Valid values for nav_style / footer_style overrides */
-const VALID_NAV_STYLES = new Set<VariantStyle["navStyle"]>(["floating", "sticky", "minimal"]);
+const VALID_NAV_STYLES = new Set<VariantStyle["navStyle"]>(["floating", "sticky", "minimal", "centered", "bordered"]);
 const VALID_FOOTER_STYLES = new Set<VariantStyle["footerStyle"]>(["columns", "centered", "minimal"]);
 
 /**
@@ -241,4 +247,59 @@ export function applyLayoutOverrides(
     : base.footerStyle;
   if (nav === base.navStyle && footer === base.footerStyle) return base;
   return { ...base, navStyle: nav, footerStyle: footer };
+}
+
+// ---------------------------------------------------------------------------
+// Composable variant overrides — mix individual aspects from different variants
+// ---------------------------------------------------------------------------
+
+/**
+ * Partial overrides for composing variants. Every field is optional.
+ * Only the fields provided will override the base variant.
+ */
+export type VariantOverrides = Partial<Omit<VariantStyle, "id" | "name" | "description">>;
+
+/**
+ * Compose a variant by applying partial overrides on top of a base variant.
+ * This allows mixing individual aspects (e.g. cards from variant 3,
+ * nav from variant 2, FAQ style from variant 1) without taking the entire variant.
+ *
+ * Example:
+ *   composeVariant(0, { cardRadius: "rounded-3xl", faqStyle: "cards", navStyle: "minimal" })
+ */
+export function composeVariant(baseVariant: number, overrides: VariantOverrides): VariantStyle {
+  const base = getVariantStyle(baseVariant);
+  return { ...base, ...overrides };
+}
+
+/**
+ * Merge multiple partial variant configs left-to-right.
+ * Later entries override earlier ones. The first argument is the base variant number.
+ *
+ * Example:
+ *   mergeVariants(0, { cardRadius: "rounded-3xl" }, { navStyle: "minimal", faqStyle: "cards" })
+ */
+export function mergeVariants(baseVariant: number, ...layers: VariantOverrides[]): VariantStyle {
+  const base = getVariantStyle(baseVariant);
+  let result = { ...base };
+  for (const layer of layers) {
+    result = { ...result, ...layer };
+  }
+  return result;
+}
+
+/**
+ * Pick specific properties from a variant (by variant number) and return them as overrides.
+ * Useful for cherry-picking aspects: pickFromVariant(3, "cardRadius", "cardShadow", "cardPadding")
+ */
+export function pickFromVariant(
+  variantNum: number,
+  ...keys: (keyof VariantOverrides)[]
+): VariantOverrides {
+  const source = getVariantStyle(variantNum);
+  const result: VariantOverrides = {};
+  for (const key of keys) {
+    (result as Record<string, unknown>)[key] = source[key];
+  }
+  return result;
 }

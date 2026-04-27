@@ -13,7 +13,21 @@ import { Reveal } from "./reveal";
 import { SectionWrap } from "./section-wrap";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+ * Client-side rate limiting: minimum cooldown between submissions (ms).
+ * Also tracks submission count within a rolling window to throttle abuse.
+ *
+ * NOTE: Backend rate limiting (e.g. per-IP / per-siteId throttle on
+ * POST /api/sites/:id/contact) MUST also be implemented server-side.
+ * Client-side throttling alone is trivially bypassable.
+ */
 const SUBMIT_COOLDOWN_MS = 5_000;
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const MAX_SUBMISSIONS_PER_WINDOW = 3;
+
+/** Track submission timestamps for rolling-window rate limiting. */
+const submissionTimestamps: number[] = [];
 
 function ContactForm({
   colors,
@@ -54,6 +68,15 @@ function ContactForm({
       return;
     }
 
+    // Rolling-window rate limit: prune old timestamps and check count
+    while (submissionTimestamps.length > 0 && now - submissionTimestamps[0] > RATE_LIMIT_WINDOW_MS) {
+      submissionTimestamps.shift();
+    }
+    if (submissionTimestamps.length >= MAX_SUBMISSIONS_PER_WINDOW) {
+      setValidationError(t("contact.form.error", lang));
+      return;
+    }
+
     const err = validate();
     if (err) {
       setValidationError(err);
@@ -61,14 +84,41 @@ function ContactForm({
     }
     setValidationError(null);
     lastSubmitRef.current = now;
+    submissionTimestamps.push(now);
     setStatus("sending");
 
     try {
+      // Fetch a CSRF token before submitting the contact form.
+      // The backend should expose GET /api/sites/:id/csrf-token that returns
+      // a token tied to the session (via SameSite cookie or double-submit pattern).
+      // If the endpoint is not yet available, we proceed without the token
+      // but log a warning so it is noticed during development.
+      let csrfToken: string | undefined;
+      try {
+        const csrfRes = await fetch(`${API_URL}/api/sites/${siteId}/csrf-token`, {
+          credentials: "include",
+        });
+        if (csrfRes.ok) {
+          const csrfData = await csrfRes.json();
+          csrfToken = csrfData.token;
+        }
+      } catch {
+        // CSRF endpoint not available yet — proceed without token.
+        // TODO: implement the backend CSRF endpoint and remove this fallback.
+        if (process.env.NODE_ENV !== "production") {
+          console.warn("[contact-form] CSRF token endpoint not available. Submissions are unprotected against CSRF.");
+        }
+      }
+
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 10_000);
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
+
       const res = await fetch(`${API_URL}/api/sites/${siteId}/contact`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
+        credentials: "include",
         body: JSON.stringify({
           name: formData.name.trim(),
           email: formData.email.trim(),
@@ -120,11 +170,13 @@ function ContactForm({
           required
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className={`w-full ${inputRadius} border px-4 py-3 text-sm outline-none transition-colors focus:ring-2`}
+          className={`w-full ${inputRadius} border px-4 py-3 min-h-[44px] text-sm outline-none transition-colors focus:ring-2 focus:border-transparent`}
           style={{
             background: colors.background,
             borderColor: mixColor(colors.text, colors.background, 0.88),
             color: colors.text,
+            // @ts-expect-error Tailwind CSS custom property for focus ring color
+            '--tw-ring-color': `${colors.primary}66`,
           }}
         />
       </div>
@@ -137,11 +189,13 @@ function ContactForm({
           required
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          className={`w-full ${inputRadius} border px-4 py-3 text-sm outline-none transition-colors focus:ring-2`}
+          className={`w-full ${inputRadius} border px-4 py-3 min-h-[44px] text-sm outline-none transition-colors focus:ring-2 focus:border-transparent`}
           style={{
             background: colors.background,
             borderColor: mixColor(colors.text, colors.background, 0.88),
             color: colors.text,
+            // @ts-expect-error Tailwind CSS custom property for focus ring color
+            '--tw-ring-color': `${colors.primary}66`,
           }}
         />
       </div>
@@ -154,11 +208,13 @@ function ContactForm({
           rows={5}
           value={formData.message}
           onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-          className={`w-full resize-none ${inputRadius} border px-4 py-3 text-sm outline-none transition-colors focus:ring-2`}
+          className={`w-full resize-none ${inputRadius} border px-4 py-3 text-sm outline-none transition-colors focus:ring-2 focus:border-transparent`}
           style={{
             background: colors.background,
             borderColor: mixColor(colors.text, colors.background, 0.88),
             color: colors.text,
+            // @ts-expect-error Tailwind CSS custom property for focus ring color
+            '--tw-ring-color': `${colors.primary}66`,
           }}
         />
       </div>
@@ -171,10 +227,12 @@ function ContactForm({
       <button
         type="submit"
         disabled={status === "sending"}
-        className={`w-full ${variantStyle.buttonRadius} px-6 py-3.5 text-sm font-semibold text-white transition-all duration-200 hover:scale-[1.01] hover:brightness-110 disabled:opacity-60`}
+        className={`w-full ${variantStyle.buttonRadius} px-6 py-3.5 min-h-[44px] text-sm font-semibold text-white transition-all duration-200 hover:scale-[1.01] hover:brightness-110 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-offset-2`}
         style={{
           background: colors.primary,
           boxShadow: `0 2px 8px ${colors.primary}30`,
+          // @ts-expect-error Tailwind CSS custom property for focus ring color
+          '--tw-ring-color': colors.primary,
         }}
       >
         {status === "sending" ? t("contact.form.sending", lang) : t("contact.form.send", lang)}

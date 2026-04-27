@@ -61,7 +61,20 @@ export function buildNavigation(data: SiteData, siteId: string, installedApps?: 
     for (const page of topPages) {
       // Strip leading slashes from slug to prevent "//slug" → protocol-relative URL
       const slug = page.slug.replace(/^\/+/, "");
-      items.push({ label: trimLabel(page.title), href: `${base}/${slug}` });
+      const navItem: NavItem = { label: trimLabel(page.title), href: `${base}/${slug}` };
+
+      // Build nested children from child pages
+      const childPages = data.pages!
+        .filter(p => p.parent_slug === page.slug && p.show_in_nav !== false)
+        .sort((a, b) => (a.nav_order ?? 0) - (b.nav_order ?? 0));
+      if (childPages.length > 0) {
+        navItem.children = childPages.map(child => {
+          const childSlug = child.slug.replace(/^\/+/, "");
+          return { label: trimLabel(child.title), href: `${base}/${slug}/${childSlug}` };
+        });
+      }
+
+      items.push(navItem);
     }
   } else {
     // ── Mode 3: Legacy auto-generated nav (no pages) ────────────────

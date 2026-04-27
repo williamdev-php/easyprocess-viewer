@@ -7,6 +7,7 @@ import { mixColor } from "@/lib/colors";
 import type { Colors } from "@/lib/types";
 import type { Theme } from "@/lib/themes";
 import type { VariantStyle } from "@/lib/style-variants";
+import Image from "next/image";
 import { sanitizeImageUrl } from "@/lib/sanitize";
 
 interface LogoItem {
@@ -62,11 +63,13 @@ export function LogoCloudSection({
               return (
               <div key={i} className="flex flex-col items-center gap-2">
                 {safeImgUrl ? (
-                  <img
+                  <Image
                     src={safeImgUrl}
                     alt={logo.name}
+                    width={120}
+                    height={48}
                     className="h-10 w-auto object-contain opacity-70 grayscale transition hover:opacity-100 hover:grayscale-0 sm:h-12"
-                    loading="lazy"
+                    sizes="120px"
                   />
                 ) : (
                   <span

@@ -14,6 +14,7 @@ import { ChatWidget } from "@/components/chat-widget";
 import Script from "next/script";
 import { sanitizeFontFamily, sanitizeHeadScripts } from "@/lib/sanitize";
 import { resolveVersion, getNavRenderer, getFooterRenderer } from "@/lib/version-registry";
+import { headers } from "next/headers";
 
 interface Props {
   params: Promise<{ siteId: string }>;
@@ -22,8 +23,19 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { siteId } = await params;
-  const meta = await fetchSiteMeta(siteId);
+  const [meta, headersList] = await Promise.all([fetchSiteMeta(siteId), headers()]);
   if (!meta) return { title: "Sidan hittades inte" };
+
+  // Build canonical URL from the request host and path
+  const host = headersList.get("host") || "localhost:3001";
+  const proto = headersList.get("x-forwarded-proto") || "https";
+  const pathname = headersList.get("x-invoke-path") || headersList.get("x-next-url") || `/${siteId}`;
+  // In production, strip the /[siteId] prefix since sites are served on their own subdomain
+  const isProduction = process.env.NODE_ENV === "production";
+  const canonicalPath = isProduction ? pathname.replace(new RegExp(`^/${siteId}`), "") || "/" : pathname;
+  const canonicalUrl = `${proto}://${host}${canonicalPath}`;
+
+  const siteName = meta.business_name || meta.title || "";
 
   return {
     title: meta.title || "Webbplats",
@@ -31,13 +43,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     keywords: meta.keywords || [],
     openGraph: {
       title: meta.title,
-      description: meta.description,
+      description: meta.description || "",
+      siteName,
       images: meta.og_image ? [meta.og_image] : [],
       locale: meta.language === "sv" ? "sv_SE" : "en_US",
       type: "website",
+      url: canonicalUrl,
+    },
+    twitter: {
+      card: meta.og_image ? "summary_large_image" : "summary",
+      title: meta.title,
+      description: meta.description || "",
+      ...(meta.og_image ? { images: [meta.og_image] } : {}),
     },
     robots: meta.robots || "index, follow",
-    alternates: { canonical: `/` },
+    alternates: { canonical: canonicalUrl },
   };
 }
 
@@ -118,8 +138,13 @@ export default async function SiteLayout({ params, children }: Props) {
         className="flex min-h-screen flex-col"
         style={{
           fontFamily: bodyFont
-            ? `${bodyFont}, -apple-system, BlinkMacSystemFont, sans-serif`
-            : `Inter, -apple-system, BlinkMacSystemFont, sans-serif`,
+            ? `${bodyFont}, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif`
+            : `Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif`,
+          '--heading-font': headingFont
+            ? `${headingFont}, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif`
+            : bodyFont
+              ? `${bodyFont}, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif`
+              : `Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif`,
           background: colors.background,
           // CSS custom properties for branded 404 and child components
           '--brand-primary': colors.primary,

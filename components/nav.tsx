@@ -82,6 +82,83 @@ function LogoOrName({
   );
 }
 
+/** Dropdown menu for nested nav items (desktop) */
+function DropdownMenu({
+  item,
+  colors,
+  linkRadius,
+  navTextColor,
+}: {
+  item: NavItem;
+  colors: Colors;
+  linkRadius: string;
+  navTextColor: string;
+}) {
+  const [open, setOpen] = useState(false);
+
+  if (!item.children?.length) {
+    return (
+      <Link
+        href={item.href}
+        className={`${linkRadius} px-3.5 py-2 text-[13px] font-medium transition-all duration-200 hover:bg-black/[0.05]`}
+        style={{ color: navTextColor }}
+      >
+        {item.label}
+      </Link>
+    );
+  }
+
+  return (
+    <div
+      className="relative"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <button
+        className={`${linkRadius} flex items-center gap-1 px-3.5 py-2 text-[13px] font-medium transition-all duration-200 hover:bg-black/[0.05]`}
+        style={{ color: navTextColor }}
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        aria-haspopup="true"
+      >
+        {item.label}
+        <svg className={`h-3 w-3 transition-transform duration-200 ${open ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      <div
+        className={`absolute left-0 top-full z-50 min-w-[180px] rounded-lg border py-1 transition-all duration-200 ${
+          open ? "pointer-events-auto translate-y-0 opacity-100" : "pointer-events-none -translate-y-1 opacity-0"
+        }`}
+        style={{
+          background: colors.background,
+          borderColor: mixColor(colors.text, colors.background, 0.9),
+          boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+        }}
+      >
+        <Link
+          href={item.href}
+          className="block px-4 py-2 text-[13px] font-medium transition-colors hover:bg-black/[0.04]"
+          style={{ color: navTextColor }}
+        >
+          {item.label}
+        </Link>
+        <div className="mx-3 my-1 h-px bg-black/[0.06]" />
+        {item.children.map((child, ci) => (
+          <Link
+            key={ci}
+            href={child.href}
+            className="block px-4 py-2 text-[13px] font-medium transition-colors hover:bg-black/[0.04]"
+            style={{ color: navTextColor }}
+          >
+            {child.label}
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function MobileMenu({
   open,
   items,
@@ -109,10 +186,12 @@ function MobileMenu({
   mobileBg: string;
   mobileBorder: string;
 }) {
+  const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
+
   return (
     <div
       className={`overflow-hidden transition-all duration-300 ease-out md:hidden ${
-        open ? "mt-3 max-h-[400px] opacity-100" : "max-h-0 opacity-0"
+        open ? "mt-3 max-h-[500px] opacity-100" : "max-h-0 opacity-0"
       }`}
     >
       <div
@@ -120,15 +199,52 @@ function MobileMenu({
         style={{ background: mobileBg, borderColor: mobileBorder }}
       >
         {items.map((item, i) => (
-          <Link
-            key={i}
-            href={item.href}
-            onClick={onClose}
-            className={`block ${linkRadius} px-4 py-2.5 text-[14px] font-medium transition-colors hover:bg-black/[0.04]`}
-            style={{ color: colors.text }}
-          >
-            {item.label}
-          </Link>
+          <div key={i}>
+            {item.children?.length ? (
+              <>
+                <button
+                  onClick={() => setExpandedIdx(expandedIdx === i ? null : i)}
+                  className={`flex w-full items-center justify-between ${linkRadius} px-4 py-2.5 text-[14px] font-medium transition-colors hover:bg-black/[0.04]`}
+                  style={{ color: colors.text }}
+                >
+                  {item.label}
+                  <svg className={`h-3 w-3 transition-transform duration-200 ${expandedIdx === i ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                <div className={`overflow-hidden transition-all duration-200 ${expandedIdx === i ? "max-h-[200px]" : "max-h-0"}`}>
+                  <Link
+                    href={item.href}
+                    onClick={onClose}
+                    className={`block ${linkRadius} px-8 py-2 text-[13px] font-medium transition-colors hover:bg-black/[0.04]`}
+                    style={{ color: colors.text }}
+                  >
+                    {item.label}
+                  </Link>
+                  {item.children.map((child, ci) => (
+                    <Link
+                      key={ci}
+                      href={child.href}
+                      onClick={onClose}
+                      className={`block ${linkRadius} px-8 py-2 text-[13px] font-medium transition-colors hover:bg-black/[0.04]`}
+                      style={{ color: colors.text }}
+                    >
+                      {child.label}
+                    </Link>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <Link
+                href={item.href}
+                onClick={onClose}
+                className={`block ${linkRadius} px-4 py-2.5 text-[14px] font-medium transition-colors hover:bg-black/[0.04]`}
+                style={{ color: colors.text }}
+              >
+                {item.label}
+              </Link>
+            )}
+          </div>
         ))}
         {ctaHref && (
           <Link
@@ -235,14 +351,7 @@ function FloatingNav({
 
           <nav className="hidden items-center gap-0.5 md:flex">
             {items.map((item, i) => (
-              <Link
-                key={i}
-                href={item.href}
-                className={`${navLinkRadius} px-3.5 py-2 text-[13px] font-medium transition-all duration-200 hover:bg-black/[0.05]`}
-                style={{ color: navTextColor }}
-              >
-                {item.label}
-              </Link>
+              <DropdownMenu key={i} item={item} colors={colors} linkRadius={navLinkRadius} navTextColor={navTextColor} />
             ))}
             {ctaHref && (
               <Link
@@ -320,14 +429,7 @@ function StickyNav({
 
           <nav className="hidden items-center gap-1 md:flex">
             {items.map((item, i) => (
-              <Link
-                key={i}
-                href={item.href}
-                className={`${linkRadius} px-3.5 py-2 text-[13px] font-medium transition-all duration-200 hover:bg-black/[0.05]`}
-                style={{ color: navTextColor }}
-              >
-                {item.label}
-              </Link>
+              <DropdownMenu key={i} item={item} colors={colors} linkRadius={linkRadius} navTextColor={navTextColor} />
             ))}
             {ctaHref && (
               <Link
@@ -400,14 +502,7 @@ function MinimalNav({
 
           <nav className="hidden items-center gap-0.5 md:flex">
             {items.map((item, i) => (
-              <Link
-                key={i}
-                href={item.href}
-                className={`${linkRadius} px-3 py-1.5 text-[12px] font-medium transition-colors duration-200 hover:bg-black/[0.04]`}
-                style={{ color: navTextColor }}
-              >
-                {item.label}
-              </Link>
+              <DropdownMenu key={i} item={item} colors={colors} linkRadius={linkRadius} navTextColor={navTextColor} />
             ))}
           </nav>
 
@@ -434,6 +529,156 @@ function MinimalNav({
 }
 
 // ---------------------------------------------------------------------------
+// CenteredNav — Logo centered above nav links (variant: centered)
+// ---------------------------------------------------------------------------
+
+function CenteredNav({
+  items,
+  colors,
+  theme,
+  logoUrl,
+  businessName,
+  ctaHref,
+  lang,
+  variantStyle,
+}: NavProps) {
+  const [open, setOpen] = useState(false);
+  const scrolled = useScrolled();
+  const { borderScrolled, navTextColor, mobileBg, mobileBorder } = useNavColors(colors);
+
+  const linkRadius = variantStyle.iconRadius;
+  const ctaRadius = variantStyle.buttonRadius;
+  const hasBorder = variantStyle.cardBorder;
+
+  return (
+    <div className="fixed inset-x-0 top-0 z-50">
+      <header
+        className={`w-full transition-all duration-300 ${hasBorder ? "border-b" : ""}`}
+        style={{
+          background: scrolled ? `${colors.background}f2` : colors.background,
+          backdropFilter: scrolled ? "blur(16px) saturate(1.4)" : "none",
+          WebkitBackdropFilter: scrolled ? "blur(16px) saturate(1.4)" : "none",
+          borderColor: borderScrolled,
+          boxShadow: scrolled ? "0 1px 3px rgba(0,0,0,0.04)" : "none",
+        }}
+      >
+        <div className="mx-auto max-w-6xl px-5 sm:px-6">
+          <div className="flex flex-col items-center py-3">
+            <LogoOrName logoUrl={logoUrl} businessName={businessName} colors={colors} href={items[0]?.href || "/"} />
+            <nav className="mt-2 hidden items-center gap-1 md:flex">
+              {items.map((item, i) => (
+                <DropdownMenu key={i} item={item} colors={colors} linkRadius={linkRadius} navTextColor={navTextColor} />
+              ))}
+              {ctaHref && (
+                <Link
+                  href={ctaHref}
+                  className={`ml-3 ${ctaRadius} px-5 py-2 text-[13px] font-semibold transition-all duration-200 hover:brightness-110`}
+                  style={{ background: colors.primary, color: "#fff" }}
+                >
+                  {t("nav.contactUs", lang)}
+                </Link>
+              )}
+            </nav>
+          </div>
+          <div className="absolute right-5 top-3 md:hidden">
+            <Burger open={open} onToggle={() => setOpen(!open)} colors={colors} lang={lang} radius={linkRadius} />
+          </div>
+        </div>
+
+        <MobileMenu
+          open={open}
+          items={items}
+          ctaHref={ctaHref}
+          colors={colors}
+          lang={lang}
+          onClose={() => setOpen(false)}
+          menuRadius={variantStyle.cardRadius}
+          linkRadius={linkRadius}
+          ctaRadius={ctaRadius}
+          hasBorder={hasBorder}
+          mobileBg={mobileBg}
+          mobileBorder={mobileBorder}
+        />
+      </header>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// BorderedNav — Underline-accented nav with distinct border bottom (variant: bordered)
+// ---------------------------------------------------------------------------
+
+function BorderedNav({
+  items,
+  colors,
+  theme,
+  logoUrl,
+  businessName,
+  ctaHref,
+  lang,
+  variantStyle,
+}: NavProps) {
+  const [open, setOpen] = useState(false);
+  const scrolled = useScrolled();
+  const { navTextColor, mobileBg, mobileBorder } = useNavColors(colors);
+
+  const linkRadius = variantStyle.iconRadius;
+  const ctaRadius = variantStyle.buttonRadius;
+  const hasBorder = variantStyle.cardBorder;
+
+  return (
+    <div className="fixed inset-x-0 top-0 z-50">
+      <header
+        className="w-full transition-all duration-300 border-b-2"
+        style={{
+          background: scrolled ? `${colors.background}f2` : colors.background,
+          backdropFilter: scrolled ? "blur(16px) saturate(1.4)" : "none",
+          WebkitBackdropFilter: scrolled ? "blur(16px) saturate(1.4)" : "none",
+          borderColor: colors.primary,
+          boxShadow: scrolled ? "0 2px 8px rgba(0,0,0,0.04)" : "none",
+        }}
+      >
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3 sm:px-6">
+          <LogoOrName logoUrl={logoUrl} businessName={businessName} colors={colors} href={items[0]?.href || "/"} />
+
+          <nav className="hidden items-center gap-1 md:flex">
+            {items.map((item, i) => (
+              <DropdownMenu key={i} item={item} colors={colors} linkRadius={linkRadius} navTextColor={navTextColor} />
+            ))}
+            {ctaHref && (
+              <Link
+                href={ctaHref}
+                className={`ml-3 ${ctaRadius} border-2 px-5 py-1.5 text-[13px] font-semibold transition-all duration-200 hover:brightness-110`}
+                style={{ borderColor: colors.primary, color: colors.primary }}
+              >
+                {t("nav.contactUs", lang)}
+              </Link>
+            )}
+          </nav>
+
+          <Burger open={open} onToggle={() => setOpen(!open)} colors={colors} lang={lang} radius={linkRadius} />
+        </div>
+
+        <MobileMenu
+          open={open}
+          items={items}
+          ctaHref={ctaHref}
+          colors={colors}
+          lang={lang}
+          onClose={() => setOpen(false)}
+          menuRadius={variantStyle.cardRadius}
+          linkRadius={linkRadius}
+          ctaRadius={ctaRadius}
+          hasBorder={hasBorder}
+          mobileBg={mobileBg}
+          mobileBorder={mobileBorder}
+        />
+      </header>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Dispatcher
 // ---------------------------------------------------------------------------
 
@@ -443,6 +688,10 @@ export function Nav(props: NavProps) {
       return <StickyNav {...props} />;
     case "minimal":
       return <MinimalNav {...props} />;
+    case "centered":
+      return <CenteredNav {...props} />;
+    case "bordered":
+      return <BorderedNav {...props} />;
     default:
       return <FloatingNav {...props} />;
   }

@@ -104,7 +104,9 @@ export function sanitizeFontFamily(font: string | undefined | null): string | un
  * Sanitize an email address for use in mailto: links.
  * Returns undefined if the value doesn't look like a valid email.
  */
-const EMAIL_FORMAT_RE = /^[^\s@<>'"]+@[^\s@<>'"]+\.[^\s@<>'"]+$/;
+// Stricter email regex: local part allows alphanumeric, dots, hyphens, underscores, plus signs;
+// domain requires at least one dot with alphanumeric labels (no consecutive dots, no leading/trailing dots).
+const EMAIL_FORMAT_RE = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
 export function sanitizeEmail(email: string | undefined | null): string | undefined {
   if (!email) return undefined;
   const trimmed = email.trim();
@@ -200,10 +202,30 @@ const DANGEROUS_PATTERNS = [
   /WebSocket\s*\(/i,
 ];
 
-function isAllowedScriptSrc(src: string): boolean {
+/** Validate SRI integrity attribute format (sha256-, sha384-, or sha512- prefix + base64). */
+const SRI_RE = /^sha(256|384|512)-[A-Za-z0-9+/=]{43,128}$/;
+
+function isValidSri(integrity: string | null | undefined): boolean {
+  if (!integrity) return false;
+  // SRI can contain multiple space-separated hashes
+  return integrity.split(/\s+/).every((hash) => SRI_RE.test(hash));
+}
+
+function isAllowedScriptSrc(src: string, integrity?: string | null): boolean {
   try {
     const url = new URL(src);
-    return url.protocol === "https:" && ALLOWED_SCRIPT_HOSTS.has(url.hostname);
+    if (url.protocol !== "https:" || !ALLOWED_SCRIPT_HOSTS.has(url.hostname)) {
+      return false;
+    }
+    // Require SRI for external scripts to ensure they haven't been tampered with.
+    // If no integrity hash is provided, reject the script as a defense-in-depth measure.
+    if (!isValidSri(integrity)) {
+      if (typeof console !== "undefined") {
+        console.warn(`[sanitize] Blocked external script without valid SRI: ${src}`);
+      }
+      return false;
+    }
+    return true;
   } catch {
     return false;
   }
@@ -233,7 +255,7 @@ export function sanitizeHeadScripts(
   const safeScripts: HeadScript[] = (headScripts.scripts ?? [])
     .slice(0, 10)
     .filter((s) => {
-      if (s.src) return isAllowedScriptSrc(s.src);
+      if (s.src) return isAllowedScriptSrc(s.src, s.integrity);
       if (s.content) return s.content.length <= 5000 && isSafeInlineScript(s.content);
       return false;
     });

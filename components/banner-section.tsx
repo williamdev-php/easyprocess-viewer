@@ -40,7 +40,7 @@ export function BannerSection({
           {button && sanitizeUrl(button.href) && (
             <a
               href={sanitizeUrl(button.href)}
-              className="shrink-0 rounded-lg bg-white/20 px-4 py-2 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/30"
+              className={`shrink-0 ${variantStyle.buttonRadius} bg-white/20 px-4 py-2 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/30`}
             >
               {button.label}
             </a>
