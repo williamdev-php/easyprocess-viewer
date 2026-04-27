@@ -437,6 +437,7 @@ export interface SiteMeta {
   structured_data: Record<string, unknown>;
   robots: string;
   head_scripts?: HeadScripts | null;
+  subdomain?: string | null;
 }
 
 // ---------------------------------------------------------------------------

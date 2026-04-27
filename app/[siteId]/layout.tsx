@@ -14,7 +14,6 @@ import { ChatWidget } from "@/components/chat-widget";
 import Script from "next/script";
 import { sanitizeFontFamily, sanitizeHeadScripts } from "@/lib/sanitize";
 import { resolveVersion, getNavRenderer, getFooterRenderer } from "@/lib/version-registry";
-import { headers } from "next/headers";
 
 interface Props {
   params: Promise<{ siteId: string }>;
@@ -23,17 +22,13 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { siteId } = await params;
-  const [meta, headersList] = await Promise.all([fetchSiteMeta(siteId), headers()]);
+  const meta = await fetchSiteMeta(siteId);
   if (!meta) return { title: "Sidan hittades inte" };
 
-  // Build canonical URL from the request host and path
-  const host = headersList.get("host") || "localhost:3001";
-  const proto = headersList.get("x-forwarded-proto") || "https";
-  const pathname = headersList.get("x-invoke-path") || headersList.get("x-next-url") || `/${siteId}`;
-  // In production, strip the /[siteId] prefix since sites are served on their own subdomain
-  const isProduction = process.env.NODE_ENV === "production";
-  const canonicalPath = isProduction ? pathname.replace(new RegExp(`^/${siteId}`), "") || "/" : pathname;
-  const canonicalUrl = `${proto}://${host}${canonicalPath}`;
+  // Build canonical URL from site's own domain info
+  const baseDomain = process.env.BASE_DOMAIN || "qvickosite.com";
+  const subdomain = meta.subdomain || siteId;
+  const canonicalUrl = `https://${subdomain}.${baseDomain}`;
 
   const siteName = meta.business_name || meta.title || "";
 

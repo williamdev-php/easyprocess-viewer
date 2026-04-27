@@ -1,17 +1,13 @@
 import type { MetadataRoute } from "next";
-import { headers } from "next/headers";
 
-export default async function robots(): Promise<MetadataRoute.Robots> {
-  const headersList = await headers();
-  const host = headersList.get("host") || "localhost:3001";
-  const proto = headersList.get("x-forwarded-proto") || "https";
-  const baseUrl = `${proto}://${host}`;
+const BASE_DOMAIN = process.env.BASE_DOMAIN || "qvickosite.com";
 
+export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
       allow: "/",
     },
-    sitemap: `${baseUrl}/sitemap.xml`,
+    sitemap: `https://${BASE_DOMAIN}/sitemap.xml`,
   };
 }
